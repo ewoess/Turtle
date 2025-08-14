@@ -69,14 +69,22 @@ export class ThreeScene {
     this.positions = new Float32Array(this.maxSegments * 2 * 3);
     this.colorsArr = new Float32Array(this.maxSegments * 2 * 3);
     this.segCount = 0;
+    this.currentPenSize = 6; // Track current pen size
     
     this.lineGeom.setAttribute('position', new THREE.BufferAttribute(this.positions, 3));
     this.lineGeom.setAttribute('color', new THREE.BufferAttribute(this.colorsArr, 3));
     this.lineGeom.setDrawRange(0, 0);
     
-    this.lineMat = new THREE.LineBasicMaterial({ vertexColors: true, linewidth: 6 });
+    // Use LineSegments2 for thick lines that work properly
+    this.lineMat = new THREE.LineBasicMaterial({ vertexColors: true });
     this.lineMesh = new THREE.LineSegments(this.lineGeom, this.lineMat);
     this.scene.add(this.lineMesh);
+    
+    // Path-based drawing for continuous thick lines
+    this.pathVertices = [];
+    this.pathColors = [];
+    this.pathGroup = new THREE.Group();
+    this.scene.add(this.pathGroup);
   }
 
   setupResizeHandler() {
@@ -196,39 +204,139 @@ export class ThreeScene {
   }
 
   drawSegment(start, end, color) {
-    this.ensureCapacity(this.segCount + 1);
+    const penSize = this.currentPenSize;
     
-    const base = this.segCount * 2 * 3;
+    // Store the segment for later processing
+    if (!this.segments) this.segments = [];
+    this.segments.push({ start, end, color });
     
-    // positions
-    this.positions[base+0] = start.x; 
-    this.positions[base+1] = start.y; 
-    this.positions[base+2] = 0;
-    this.positions[base+3] = end.x; 
-    this.positions[base+4] = end.y; 
-    this.positions[base+5] = 0;
+    // Rebuild the entire path with proper joins
+    this.rebuildPathWithJoins();
+  }
+  
+  rebuildPathWithJoins() {
+    // Clear existing path meshes
+    while (this.pathGroup.children.length > 0) {
+      const child = this.pathGroup.children[0];
+      this.pathGroup.remove(child);
+      child.geometry.dispose();
+      child.material.dispose();
+    }
     
-    // colors (same color for both vertices of the segment)
-    this.colorsArr[base+0] = color.r; 
-    this.colorsArr[base+1] = color.g; 
-    this.colorsArr[base+2] = color.b;
-    this.colorsArr[base+3] = color.r; 
-    this.colorsArr[base+4] = color.g; 
-    this.colorsArr[base+5] = color.b;
+    if (!this.segments || this.segments.length === 0) return;
     
-    this.segCount++;
-    this.lineGeom.attributes.position.needsUpdate = true;
-    this.lineGeom.attributes.color.needsUpdate = true;
-    this.lineGeom.setDrawRange(0, this.segCount * 2);
+    const penSize = this.currentPenSize;
+    const halfThickness = penSize * 0.25;
+    
+    // Create vertices for the entire path with proper joins
+    const vertices = [];
+    const colors = [];
+    
+    for (let i = 0; i < this.segments.length; i++) {
+      const segment = this.segments[i];
+      const nextSegment = this.segments[i + 1];
+      
+      // Calculate direction of current segment
+      const dx = segment.end.x - segment.start.x;
+      const dy = segment.end.y - segment.start.y;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      
+      if (length === 0) continue;
+      
+      const dirX = dx / length;
+      const dirY = dy / length;
+      const perpX = -dirY;
+      const perpY = dirX;
+      
+      // Calculate direction of next segment (if exists)
+      let nextDirX = 0, nextDirY = 0, nextPerpX = 0, nextPerpY = 0;
+      if (nextSegment) {
+        const nextDx = nextSegment.end.x - nextSegment.start.x;
+        const nextDy = nextSegment.end.y - nextSegment.start.y;
+        const nextLength = Math.sqrt(nextDx * nextDx + nextDy * nextDy);
+        
+        if (nextLength > 0) {
+          nextDirX = nextDx / nextLength;
+          nextDirY = nextDy / nextLength;
+          nextPerpX = -nextDirY;
+          nextPerpY = nextDirX;
+        }
+      }
+      
+      // Create rectangle for this segment
+      const v1 = [segment.start.x + perpX * halfThickness, segment.start.y + perpY * halfThickness, 0];
+      const v2 = [segment.start.x - perpX * halfThickness, segment.start.y - perpY * halfThickness, 0];
+      const v3 = [segment.end.x - perpX * halfThickness, segment.end.y - perpY * halfThickness, 0];
+      const v4 = [segment.end.x + perpX * halfThickness, segment.end.y + perpY * halfThickness, 0];
+      
+      // Add rectangle vertices (two triangles)
+      vertices.push(...v1, ...v2, ...v3, ...v1, ...v3, ...v4);
+      
+      // Add colors
+      for (let j = 0; j < 6; j++) {
+        colors.push(segment.color.r, segment.color.g, segment.color.b);
+      }
+      
+      // If there's a next segment, create a join at the corner
+      if (nextSegment && (nextDirX !== 0 || nextDirY !== 0)) {
+        // Calculate the join point (where segments meet)
+        const joinX = segment.end.x;
+        const joinY = segment.end.y;
+        
+        // Create a small triangle to fill the gap at the corner
+        const joinV1 = [joinX + perpX * halfThickness, joinY + perpY * halfThickness, 0];
+        const joinV2 = [joinX - perpX * halfThickness, joinY - perpY * halfThickness, 0];
+        const joinV3 = [joinX + nextPerpX * halfThickness, joinY + nextPerpY * halfThickness, 0];
+        const joinV4 = [joinX - nextPerpX * halfThickness, joinY - nextPerpY * halfThickness, 0];
+        
+        // Add join triangles
+        vertices.push(...joinV1, ...joinV2, ...joinV3);
+        vertices.push(...joinV2, ...joinV4, ...joinV3);
+        
+        // Add colors for join
+        for (let j = 0; j < 6; j++) {
+          colors.push(segment.color.r, segment.color.g, segment.color.b);
+        }
+      }
+    }
+    
+    if (vertices.length > 0) {
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+      
+      const material = new THREE.MeshBasicMaterial({ 
+        vertexColors: true,
+        side: THREE.DoubleSide
+      });
+      
+      const mesh = new THREE.Mesh(geometry, material);
+      this.pathGroup.add(mesh);
+    }
   }
 
   clearScreen() {
     this.segCount = 0;
     this.lineGeom.setDrawRange(0, 0);
+    
+    // Clear path-based drawing
+    this.segments = [];
+    
+    // Clear all path meshes
+    while (this.pathGroup.children.length > 0) {
+      const child = this.pathGroup.children[0];
+      this.pathGroup.remove(child);
+      child.geometry.dispose();
+      child.material.dispose();
+    }
   }
 
   setLineWidth(width) {
-    this.lineMat.linewidth = width;
+    this.currentPenSize = Math.max(1, Math.min(12, width));
+    // Rebuild existing path with new pen size
+    if (this.segments && this.segments.length > 0) {
+      this.rebuildPathWithJoins();
+    }
   }
 
   render() {
