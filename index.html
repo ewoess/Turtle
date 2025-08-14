@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three.js Turtle (Apple II Logo‑style) — Rainbow Mode</title>
+  <link rel="stylesheet" href="src/styles/main.css">
+</head>
+<body>
+  <header>
+    <h1>Apple II–style Turtle (Logo‑like) — Three.js</h1>
+    <span class="chip" style="margin-left:auto;color:#9bd7be">FD, BK, RT, LT, PU, PD, HOME, CS, SETPOS x y, SETHEADING d, PENCOLOR r g b, PENSIZE n, RAINBOW ON/OFF, HUESTEP n, REPEAT n [ … ]</span>
+  </header>
+  <div class="wrap">
+    <section class="left">
+      <div class="panel toolbar">
+        <button id="runBtn">Run</button>
+        <button id="stepBtn">Step</button>
+        <button id="resetBtn">Reset</button>
+        <label>Speed <input id="speed" type="range" min="0" max="300" value="150"/></label>
+        <label>Pen size <input id="pensize" type="number" min="1" max="12" value="6" style="width:56px"></label>
+        <label>Pen color <input id="pencolor" type="color" value="#33ffaa"></label>
+        <label>Zoom <input id="zoomSlider" type="range" min="0.1" max="5" step="0.1" value="1" style="width:80px"></label>
+      </div>
+      <textarea id="editor" spellcheck="false"></textarea>
+      <div class="help">
+        <details open>
+          <summary>Commands</summary>
+          <div>
+            <p><code>FD n</code> / <code>BK n</code> — forward/back <em>n</em> px</p>
+            <p><code>RT a</code> / <code>LT a</code> — turn right/left <em>a</em> degrees</p>
+            <p><code>PU</code> / <code>PD</code> — pen up/down</p>
+            <p><code>HOME</code> — go to (0,0), heading 0 (up)</p>
+            <p><code>CS</code> — clear screen</p>
+            <p><code>SETPOS x y</code> — move to x,y (center = 0,0; +y up)</p>
+            <p><code>SETHEADING d</code> — 0 up, 90 right (Logo‑style)</p>
+            <p><code>PENCOLOR r g b</code> — set pen (0‑255)</p>
+            <p><code>PENSIZE n</code> — 1..12</p>
+            <p><code>RAINBOW ON/OFF</code> — auto‑cycle color each segment</p>
+            <p><code>HUESTEP n</code> — hue step in degrees (default 5)</p>
+            <p><code>REPEAT n [ ... ]</code> — supports nesting</p>
+          </div>
+        </details>
+        <details>
+          <summary>Examples</summary>
+          <pre id="examples" style="white-space:pre-wrap;color:#cfe8ff"></pre>
+        </details>
+      </div>
+      <div class="status">
+        <div class="light" id="light"></div>
+        <div id="statusText">Ready.</div>
+      </div>
+    </section>
+    <section class="canvas-wrap">
+      <div id="three"></div>
+      <div class="overlay">
+        <span class="chip">Pos: <span id="posLbl">0,0</span></span>
+        <span class="chip">Head: <span id="headLbl">0°</span></span>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="src/js/main.js"></script>
+</body>
+</html>

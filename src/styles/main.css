@@ -1,0 +1,164 @@
+:root { 
+  --bg: #0b0e11; 
+  --panel: #11161c; 
+  --ink: #e6f1ff; 
+  --muted: #9db2ce; 
+  --accent: #4dd7a9; 
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0; 
+  background: var(--bg); 
+  color: var(--ink); 
+  font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+header {
+  padding: 12px 16px; 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  border-bottom: 1px solid #1c2430;
+}
+
+header h1 {
+  font-size: 16px; 
+  margin: 0; 
+  font-weight: 600;
+}
+
+.wrap {
+  display: grid; 
+  grid-template-columns: 360px 1fr; 
+  height: calc(100vh - 53px);
+}
+
+.left {
+  display: flex; 
+  flex-direction: column; 
+  border-right: 1px solid #1c2430; 
+  min-width: 320px;
+}
+
+.panel {
+  background: var(--panel); 
+  padding: 10px;
+}
+
+.toolbar {
+  display: flex; 
+  gap: 8px; 
+  flex-wrap: wrap; 
+  align-items: center;
+}
+
+.toolbar button, 
+.toolbar select {
+  background: #18202a; 
+  color: var(--ink); 
+  border: 1px solid #263140; 
+  padding: 8px 10px; 
+  border-radius: 10px; 
+  cursor: pointer;
+}
+
+.toolbar button:hover {
+  border-color: #3a4b62;
+}
+
+.toolbar label {
+  color: var(--muted); 
+  font-size: 12px;
+}
+
+textarea {
+  flex: 1; 
+  width: 100%; 
+  resize: none; 
+  border: 0; 
+  outline: none; 
+  background: transparent; 
+  color: var(--ink); 
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; 
+  padding: 10px;
+}
+
+.status {
+  height: 30px; 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  color: var(--muted); 
+  padding: 6px 10px; 
+  border-top: 1px solid #1c2430; 
+  background: #0f141a;
+}
+
+.status .light {
+  width: 9px; 
+  height: 9px; 
+  border-radius: 50%; 
+  background: #666;
+}
+
+.status .light.ok {
+  background: #22c55e;
+}
+
+.status .light.err {
+  background: #ef4444;
+}
+
+.canvas-wrap {
+  position: relative; 
+  background: #000;
+}
+
+#three {
+  position: absolute; 
+  inset: 0;
+}
+
+.overlay {
+  position: absolute; 
+  top: 10px; 
+  left: 10px; 
+  display: flex; 
+  gap: 8px; 
+  align-items: center;
+}
+
+.overlay .chip {
+  background: #0d1218cc; 
+  border: 1px solid #223041; 
+  color: #c7d6ee; 
+  padding: 4px 8px; 
+  border-radius: 999px; 
+  font-size: 12px;
+}
+
+.help {
+  padding: 10px; 
+  color: #bcd; 
+  border-top: 1px solid #1c2430; 
+  font-size: 12px;
+}
+
+details {
+  margin: 6px 0;
+}
+
+summary {
+  cursor: pointer; 
+  color: #a3b8d6;
+}
+
+code {
+  background: #0d1218; 
+  padding: 1px 6px; 
+  border-radius: 6px;
+}

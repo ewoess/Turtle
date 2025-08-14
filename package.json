@@ -1,0 +1,30 @@
+{
+  "name": "turtle-graphics-app",
+  "version": "1.0.0",
+  "description": "A Three.js-based Turtle graphics application inspired by Apple II Logo",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .js,.ts",
+    "format": "prettier --write src"
+  },
+  "dependencies": {
+    "three": "^0.165.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "keywords": [
+    "turtle-graphics",
+    "logo",
+    "threejs",
+    "educational",
+    "graphics"
+  ],
+  "author": "",
+  "license": "MIT"
+}
