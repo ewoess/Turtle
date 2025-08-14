@@ -32,11 +32,13 @@ export class TurtleState {
     const start = this.pos.clone();
     const end = start.clone().add(dir.multiplyScalar(distance));
     
+    // Always update the turtle's position
+    this.pos.copy(end);
+    
     if (this.penDown) {
       return { start, end, shouldDraw: true };
     }
     
-    this.pos.copy(end);
     return { start, end, shouldDraw: false };
   }
 
