@@ -142,7 +142,10 @@ export class UIController {
   stepsThisFrame() {
     const s = Math.max(0, Math.min(300, parseInt(this.speed.value, 10) || 0));
     const sv = s / 300; // 0..1
-    return 1 + Math.floor(sv * sv * 400); // up to ~401 steps per frame
+    // Adjust so that speed 0 (slowest) = ~1 step
+    // Speed 150 (middle) = ~5 steps (very slow middle)
+    // Speed 300 (fastest) = ~25 steps (reasonable fastest)
+    return 1 + Math.floor(sv * sv * 24); // 1 to ~25 steps per frame
   }
 
   tickRun() {
