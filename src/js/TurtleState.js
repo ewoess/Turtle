@@ -81,6 +81,21 @@ export class TurtleState {
     return color;
   }
 
+  getCurrentColorWithoutAdvancing() {
+    const color = new THREE.Color();
+    if (this.rainbow) {
+      color.setHSL(this.hue/360, 1.0, 0.5);
+    } else {
+      color.copy(this.penColor);
+    }
+    return color;
+  }
+
+  getCurrentColorHex() {
+    const color = this.getCurrentColorWithoutAdvancing();
+    return '#' + color.getHexString();
+  }
+
   getPosition() {
     return { x: this.pos.x, y: this.pos.y };
   }

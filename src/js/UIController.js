@@ -5,6 +5,7 @@ export class UIController {
     this.threeScene = threeScene;
     this.programIterator = null;
     this.playing = false;
+    this.rainbowUpdateInterval = null;
     
     this.setupElements();
     this.setupEventListeners();
@@ -19,6 +20,7 @@ export class UIController {
     this.speed = document.getElementById('speed');
     this.pensize = document.getElementById('pensize');
     this.pencolor = document.getElementById('pencolor');
+    this.rainbowIndicator = document.getElementById('rainbowIndicator');
     this.zoomSlider = document.getElementById('zoomSlider');
     this.statusText = document.getElementById('statusText');
     this.light = document.getElementById('light');
@@ -82,6 +84,33 @@ export class UIController {
     this.headLbl.textContent = `${heading.toFixed(0)}°`;
   }
 
+  updateColorPicker() {
+    const currentColor = this.executor.getCurrentColorHex();
+    this.pencolor.value = currentColor;
+    
+    const isRainbow = this.executor.isRainbowOn();
+    this.rainbowIndicator.style.display = isRainbow ? 'inline' : 'none';
+    
+    // If rainbow is on, update the color picker periodically to show the cycling
+    if (isRainbow) {
+      if (!this.rainbowUpdateInterval) {
+        this.rainbowUpdateInterval = setInterval(() => {
+          if (this.executor.isRainbowOn()) {
+            this.pencolor.value = this.executor.getCurrentColorHex();
+          } else {
+            clearInterval(this.rainbowUpdateInterval);
+            this.rainbowUpdateInterval = null;
+          }
+        }, 100); // Update every 100ms to show the color cycling
+      }
+    } else {
+      if (this.rainbowUpdateInterval) {
+        clearInterval(this.rainbowUpdateInterval);
+        this.rainbowUpdateInterval = null;
+      }
+    }
+  }
+
   compile() {
     const result = this.interpreter.compile(this.editor.value);
     if (result.success) {
@@ -137,6 +166,13 @@ export class UIController {
     this.runBtn.textContent = 'Run';
     this.setStatus('Reset.');
     this.updatePositionDisplay();
+    this.updateColorPicker();
+    
+    // Clear rainbow update interval
+    if (this.rainbowUpdateInterval) {
+      clearInterval(this.rainbowUpdateInterval);
+      this.rainbowUpdateInterval = null;
+    }
   }
 
   stepsThisFrame() {
@@ -181,5 +217,6 @@ export class UIController {
   initialize() {
     this.compile();
     this.updatePositionDisplay();
+    this.updateColorPicker();
   }
 }
