@@ -125,12 +125,22 @@ export class UIController {
   }
 
   handleRun() {
-    if (!this.programIterator && !this.compile()) return;
+    // If program has finished (no iterator), automatically reset first
+    if (!this.programIterator) {
+      console.log('No program iterator, resetting and compiling...');
+      this.handleReset();
+      if (!this.compile()) {
+        console.log('Compilation failed');
+        return;
+      }
+      console.log('Compilation successful, program iterator created');
+    }
     
     this.playing = !this.playing;
     this.runBtn.textContent = this.playing ? 'Pause' : 'Run';
     
     if (this.playing) {
+      console.log('Starting tickRun...');
       this.tickRun();
     }
   }
@@ -194,6 +204,7 @@ export class UIController {
         this.setStatus('Program finished.');
         this.playing = false;
         this.runBtn.textContent = 'Run';
+        this.programIterator = null;
         break;
       }
       
