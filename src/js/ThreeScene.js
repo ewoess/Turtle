@@ -41,9 +41,50 @@ export class ThreeScene {
 
   setupGrid() {
     // Grid to match the viewport with 10-unit spacing
-    const grid = new THREE.GridHelper(400, 40, 0x112233, 0x0b1624);
-    grid.rotation.x = Math.PI/2; // make it 2D (XZ-> XY)
-    this.scene.add(grid);
+    this.grid = new THREE.GridHelper(400, 40, 0x112233, 0x0b1624);
+    this.grid.rotation.x = Math.PI/2; // make it 2D (XZ-> XY)
+    this.scene.add(this.grid);
+    
+    // Create prominent main axes (X and Y)
+    this.createMainAxes();
+    
+    this.gridVisible = true;
+  }
+
+  createMainAxes() {
+    // Create a group for the main axes
+    this.mainAxesGroup = new THREE.Group();
+    
+    // X-axis (horizontal) - bright red
+    const xAxisGeometry = new THREE.BufferGeometry();
+    const xAxisVertices = new Float32Array([
+      -200, 0, 0,  // Start at left edge
+      200, 0, 0    // End at right edge
+    ]);
+    xAxisGeometry.setAttribute('position', new THREE.BufferAttribute(xAxisVertices, 3));
+    const xAxisMaterial = new THREE.LineBasicMaterial({ 
+      color: 0xff4444,  // Bright red
+      linewidth: 3      // Thicker line
+    });
+    this.xAxis = new THREE.Line(xAxisGeometry, xAxisMaterial);
+    this.mainAxesGroup.add(this.xAxis);
+    
+    // Y-axis (vertical) - bright blue
+    const yAxisGeometry = new THREE.BufferGeometry();
+    const yAxisVertices = new Float32Array([
+      0, -200, 0,  // Start at bottom edge
+      0, 200, 0    // End at top edge
+    ]);
+    yAxisGeometry.setAttribute('position', new THREE.BufferAttribute(yAxisVertices, 3));
+    const yAxisMaterial = new THREE.LineBasicMaterial({ 
+      color: 0x4444ff,  // Bright blue
+      linewidth: 3      // Thicker line
+    });
+    this.yAxis = new THREE.Line(yAxisGeometry, yAxisMaterial);
+    this.mainAxesGroup.add(this.yAxis);
+    
+    this.scene.add(this.mainAxesGroup);
+    this.mainAxesVisible = true;
   }
 
   setupTurtle() {
@@ -337,6 +378,17 @@ export class ThreeScene {
     if (this.segments && this.segments.length > 0) {
       this.rebuildPathWithJoins();
     }
+  }
+
+  toggleGrid() {
+    this.gridVisible = !this.gridVisible;
+    this.grid.visible = this.gridVisible;
+    
+    // Also toggle the main axes visibility
+    this.mainAxesVisible = this.gridVisible;
+    this.mainAxesGroup.visible = this.mainAxesVisible;
+    
+    return this.gridVisible;
   }
 
   render() {

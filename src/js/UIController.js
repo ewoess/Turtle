@@ -23,6 +23,7 @@ export class UIController {
     this.pencolor = document.getElementById('pencolor');
     this.rainbowIndicator = document.getElementById('rainbowIndicator');
     this.zoomSlider = document.getElementById('zoomSlider');
+    this.toggleGridBtn = document.getElementById('toggleGridBtn');
     this.statusText = document.getElementById('statusText');
     this.light = document.getElementById('light');
     this.posLbl = document.getElementById('posLbl');
@@ -35,6 +36,7 @@ export class UIController {
     this.stepBtn.addEventListener('click', () => this.handleStep());
     this.resetBtn.addEventListener('click', () => this.handleReset());
     this.toggleCommandsBtn.addEventListener('click', () => this.toggleCommands());
+    this.toggleGridBtn.addEventListener('click', () => this.toggleGrid());
     
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -127,6 +129,13 @@ export class UIController {
     // Update button text to indicate state
     this.toggleCommandsBtn.textContent = this.commandsDetails.open ? '📋' : '📖';
     this.toggleCommandsBtn.title = this.commandsDetails.open ? 'Hide Commands List (Ctrl+Shift+C)' : 'Show Commands List (Ctrl+Shift+C)';
+  }
+
+  toggleGrid() {
+    const isVisible = this.threeScene.toggleGrid();
+    // Update button text to indicate state
+    this.toggleGridBtn.textContent = isVisible ? '🔲' : '⬜';
+    this.toggleGridBtn.title = isVisible ? 'Hide Grid' : 'Show Grid';
   }
 
   compile() {
