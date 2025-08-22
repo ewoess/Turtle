@@ -17,6 +17,7 @@ export class UIController {
     this.runBtn = document.getElementById('runBtn');
     this.stepBtn = document.getElementById('stepBtn');
     this.resetBtn = document.getElementById('resetBtn');
+    this.toggleCommandsBtn = document.getElementById('toggleCommandsBtn');
     this.speed = document.getElementById('speed');
     this.pensize = document.getElementById('pensize');
     this.pencolor = document.getElementById('pencolor');
@@ -26,12 +27,22 @@ export class UIController {
     this.light = document.getElementById('light');
     this.posLbl = document.getElementById('posLbl');
     this.headLbl = document.getElementById('headLbl');
+    this.commandsDetails = document.getElementById('commandsDetails');
   }
 
   setupEventListeners() {
     this.runBtn.addEventListener('click', () => this.handleRun());
     this.stepBtn.addEventListener('click', () => this.handleStep());
     this.resetBtn.addEventListener('click', () => this.handleReset());
+    this.toggleCommandsBtn.addEventListener('click', () => this.toggleCommands());
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        this.toggleCommands();
+      }
+    });
     
     this.pensize.addEventListener('change', () => {
       const size = Math.max(1, Math.min(12, parseInt(this.pensize.value || '2', 10)));
@@ -111,6 +122,13 @@ export class UIController {
     }
   }
 
+  toggleCommands() {
+    this.commandsDetails.open = !this.commandsDetails.open;
+    // Update button text to indicate state
+    this.toggleCommandsBtn.textContent = this.commandsDetails.open ? '📋' : '📖';
+    this.toggleCommandsBtn.title = this.commandsDetails.open ? 'Hide Commands List (Ctrl+Shift+C)' : 'Show Commands List (Ctrl+Shift+C)';
+  }
+
   compile() {
     const result = this.interpreter.compile(this.editor.value);
     if (result.success) {
@@ -127,20 +145,14 @@ export class UIController {
   handleRun() {
     // If program has finished (no iterator), automatically reset first
     if (!this.programIterator) {
-      console.log('No program iterator, resetting and compiling...');
       this.handleReset();
-      if (!this.compile()) {
-        console.log('Compilation failed');
-        return;
-      }
-      console.log('Compilation successful, program iterator created');
+      if (!this.compile()) return;
     }
     
     this.playing = !this.playing;
     this.runBtn.textContent = this.playing ? 'Pause' : 'Run';
     
     if (this.playing) {
-      console.log('Starting tickRun...');
       this.tickRun();
     }
   }

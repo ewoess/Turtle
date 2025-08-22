@@ -17,6 +17,7 @@
         <button id="runBtn">Run</button>
         <button id="stepBtn">Step</button>
         <button id="resetBtn">Reset</button>
+        <button id="toggleCommandsBtn" title="Toggle Commands List (Ctrl+Shift+C)">📋</button>
         <label>Speed <input id="speed" type="range" min="0" max="300" value="150"/></label>
         <label>Pen size <input id="pensize" type="number" min="1" max="12" value="6" style="width:56px"></label>
         <label>Pen color <input id="pencolor" type="color" value="#33ffaa"><span id="rainbowIndicator" style="display:none;margin-left:8px;color:#ff6b6b">🌈</span></label>
@@ -24,7 +25,7 @@
       </div>
       <textarea id="editor" spellcheck="false"></textarea>
       <div class="help">
-        <details open>
+        <details id="commandsDetails" open>
           <summary>Commands</summary>
           <div>
             <p><code>FD n</code> / <code>BK n</code> — forward/back <em>n</em> px</p>
