@@ -11,14 +11,17 @@ export class ThreeScene {
     this.minZoom = 0.1;
     this.maxZoom = 5.0;
     
-    this.setupCamera();
     this.setupRenderer();
     this.setupGrid();
+    this.setupCamera();
     this.setupTurtle();
     this.setupDrawing();
     
     this.setupResizeHandler();
     this.setupZoomControls();
+    
+    // Now that everything is set up, update the grid to match the initial zoom
+    this.updateGrid();
   }
 
   setupCamera() {
@@ -28,8 +31,8 @@ export class ThreeScene {
     this.camera.lookAt(0, 0, 0);
     this.camera.up.set(0, 1, 0); // Y-axis is up
     
-    // Set initial camera bounds
-    this.updateCamera();
+    // Set initial camera bounds without updating grid (grid not ready yet)
+    this.updateCameraBounds();
   }
 
   setupRenderer() {
@@ -40,7 +43,7 @@ export class ThreeScene {
   }
 
   setupGrid() {
-    // Grid to match the viewport with 10-unit spacing
+    // Create initial grid - will be updated dynamically
     this.grid = new THREE.GridHelper(400, 40, 0x112233, 0x0b1624);
     this.grid.rotation.x = Math.PI/2; // make it 2D (XZ-> XY)
     this.scene.add(this.grid);
@@ -180,7 +183,7 @@ export class ThreeScene {
     this.updateCamera();
   }
 
-  updateCamera() {
+  updateCameraBounds() {
     const width = this.getWidth();
     const height = this.getHeight();
     const aspect = width / height;
@@ -196,11 +199,102 @@ export class ThreeScene {
     this.camera.updateProjectionMatrix();
   }
 
+  updateCamera() {
+    this.updateCameraBounds();
+    
+    // Update grid to match current zoom level (only if grid exists)
+    if (this.grid) {
+      this.updateGrid();
+    }
+  }
+
   updateZoomSlider() {
     const slider = document.getElementById('zoomSlider');
     if (slider) {
       slider.value = this.zoomLevel;
     }
+  }
+
+  updateGrid() {
+    // Only update if grid exists
+    if (!this.grid) return;
+    
+    // Calculate appropriate grid size and divisions based on zoom level
+    const baseSize = 200; // Base viewport size
+    const viewSize = baseSize / this.zoomLevel;
+    
+    // Determine grid spacing based on zoom level
+    // At zoom level 1.0, we want roughly 10-unit spacing
+    // As we zoom out, we want larger spacing to avoid too many lines
+    let gridSpacing = 10;
+    if (this.zoomLevel < 0.5) gridSpacing = 50;
+    else if (this.zoomLevel < 0.2) gridSpacing = 100;
+    else if (this.zoomLevel < 0.1) gridSpacing = 200;
+    else if (this.zoomLevel < 0.05) gridSpacing = 500;
+    
+    // Calculate grid size and divisions
+    const gridSize = Math.max(viewSize * 2, 400); // At least 400 units wide
+    const divisions = Math.max(2, Math.floor(gridSize / gridSpacing)); // At least 2 divisions
+    
+    // Remove the old grid
+    this.scene.remove(this.grid);
+    this.grid.geometry.dispose();
+    this.grid.material.dispose();
+    
+    // Create new grid with appropriate size and divisions
+    this.grid = new THREE.GridHelper(gridSize, divisions, 0x112233, 0x0b1624);
+    this.grid.rotation.x = Math.PI/2; // make it 2D (XZ-> XY)
+    this.grid.visible = this.gridVisible;
+    this.scene.add(this.grid);
+    
+    // Update the main axes to match the grid size
+    this.updateMainAxes(gridSize);
+  }
+
+  updateMainAxes(gridSize) {
+    // Only update if main axes exist
+    if (!this.mainAxesGroup) return;
+    
+    const halfSize = gridSize / 2;
+    
+    // Remove old axes
+    this.scene.remove(this.mainAxesGroup);
+    this.mainAxesGroup.children.forEach(child => {
+      child.geometry.dispose();
+      child.material.dispose();
+    });
+    this.mainAxesGroup.clear();
+    
+    // Create new X-axis (horizontal) - bright red
+    const xAxisGeometry = new THREE.BufferGeometry();
+    const xAxisVertices = new Float32Array([
+      -halfSize, 0, 0,  // Start at left edge
+      halfSize, 0, 0    // End at right edge
+    ]);
+    xAxisGeometry.setAttribute('position', new THREE.BufferAttribute(xAxisVertices, 3));
+    const xAxisMaterial = new THREE.LineBasicMaterial({ 
+      color: 0xff4444,  // Bright red
+      linewidth: 3      // Thicker line
+    });
+    this.xAxis = new THREE.Line(xAxisGeometry, xAxisMaterial);
+    this.mainAxesGroup.add(this.xAxis);
+    
+    // Create new Y-axis (vertical) - bright blue
+    const yAxisGeometry = new THREE.BufferGeometry();
+    const yAxisVertices = new Float32Array([
+      0, -halfSize, 0,  // Start at bottom edge
+      0, halfSize, 0    // End at top edge
+    ]);
+    yAxisGeometry.setAttribute('position', new THREE.BufferAttribute(yAxisVertices, 3));
+    const yAxisMaterial = new THREE.LineBasicMaterial({ 
+      color: 0x4444ff,  // Bright blue
+      linewidth: 3      // Thicker line
+    });
+    this.yAxis = new THREE.Line(yAxisGeometry, yAxisMaterial);
+    this.mainAxesGroup.add(this.yAxis);
+    
+    this.scene.add(this.mainAxesGroup);
+    this.mainAxesGroup.visible = this.mainAxesVisible;
   }
 
   getWidth() {
