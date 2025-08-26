@@ -24,6 +24,7 @@ export class UIController {
     this.rainbowIndicator = document.getElementById('rainbowIndicator');
     this.zoomSlider = document.getElementById('zoomSlider');
     this.toggleGridBtn = document.getElementById('toggleGridBtn');
+    this.resetViewBtn = document.getElementById('resetViewBtn');
     this.statusText = document.getElementById('statusText');
     this.light = document.getElementById('light');
     this.posLbl = document.getElementById('posLbl');
@@ -37,6 +38,7 @@ export class UIController {
     this.resetBtn.addEventListener('click', () => this.handleReset());
     this.toggleCommandsBtn.addEventListener('click', () => this.toggleCommands());
     this.toggleGridBtn.addEventListener('click', () => this.toggleGrid());
+    this.resetViewBtn.addEventListener('click', () => this.resetView());
     
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -56,6 +58,18 @@ export class UIController {
       if (e.ctrlKey && e.key === '0') {
         e.preventDefault();
         this.threeScene.setZoom(1.0);
+      }
+      // Reset view shortcut
+      if (e.ctrlKey && e.key === 'Home') {
+        e.preventDefault();
+        this.resetView();
+      }
+      // Pan shortcuts for touchpad users
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (e.shiftKey) {
+          e.preventDefault();
+          this.panWithArrowKeys(e.key);
+        }
       }
     });
     
@@ -152,6 +166,33 @@ export class UIController {
     // Update button text to indicate state
     this.toggleGridBtn.textContent = isVisible ? '🔲' : '⬜';
     this.toggleGridBtn.title = isVisible ? 'Hide Grid' : 'Show Grid';
+  }
+
+  resetView() {
+    this.threeScene.resetView();
+    this.setStatus('View reset to center.');
+  }
+
+  panWithArrowKeys(key) {
+    const panAmount = 50; // Pan by 50 units
+    const currentPos = this.threeScene.camera.position;
+    
+    switch (key) {
+      case 'ArrowUp':
+        this.threeScene.camera.position.y += panAmount;
+        break;
+      case 'ArrowDown':
+        this.threeScene.camera.position.y -= panAmount;
+        break;
+      case 'ArrowLeft':
+        this.threeScene.camera.position.x -= panAmount;
+        break;
+      case 'ArrowRight':
+        this.threeScene.camera.position.x += panAmount;
+        break;
+    }
+    
+    this.threeScene.camera.lookAt(this.threeScene.camera.position.x, this.threeScene.camera.position.y, 0);
   }
 
   compile() {

@@ -12,6 +12,11 @@ export class ThreeScene {
     this.maxZoom = 1000.0; // Much larger maximum for infinite zoom in
     this.zoomFactor = 0.1; // 10% change per wheel step for consistent zooming
     
+    // Pan state
+    this.isPanning = false;
+    this.panStart = { x: 0, y: 0 };
+    this.panStartCamera = { x: 0, y: 0 };
+    
     this.setupRenderer();
     this.setupGrid();
     this.setupCamera();
@@ -167,6 +172,200 @@ export class ThreeScene {
         initialDistance = currentDistance;
       }
     });
+
+    // Pan controls (middle mouse button drag)
+    this.setupPanControls();
+  }
+
+  setupPanControls() {
+    // Middle mouse button pan (button 1 is middle mouse)
+    this.container.addEventListener('mousedown', (event) => {
+      if (event.button === 1) { // Middle mouse button
+        event.preventDefault();
+        this.startPan(event);
+      }
+    });
+
+    this.container.addEventListener('mousemove', (event) => {
+      if (this.isPanning) {
+        event.preventDefault();
+        this.updatePan(event);
+      }
+    });
+
+    this.container.addEventListener('mouseup', (event) => {
+      if (event.button === 1) { // Middle mouse button
+        event.preventDefault();
+        this.endPan();
+      }
+    });
+
+    // Prevent context menu on middle mouse button
+    this.container.addEventListener('contextmenu', (event) => {
+      if (event.button === 1) {
+        event.preventDefault();
+      }
+    });
+
+    // Touch pan support (single finger drag)
+    let touchStartX = 0, touchStartY = 0;
+    let touchStartCameraX = 0, touchStartCameraY = 0;
+    let isTouchPanning = false;
+
+    this.container.addEventListener('touchstart', (event) => {
+      if (event.touches.length === 1) {
+        const touch = event.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchStartCameraX = this.camera.position.x;
+        touchStartCameraY = this.camera.position.y;
+        isTouchPanning = true;
+      }
+    });
+
+    this.container.addEventListener('touchmove', (event) => {
+      if (event.touches.length === 1 && isTouchPanning) {
+        event.preventDefault();
+        const touch = event.touches[0];
+        const deltaX = touch.clientX - touchStartX;
+        const deltaY = touch.clientY - touchStartY;
+        
+        // Convert screen delta to world delta
+        const rect = this.container.getBoundingClientRect();
+        const worldDeltaX = (deltaX / rect.width) * (this.camera.right - this.camera.left);
+        const worldDeltaY = (deltaY / rect.height) * (this.camera.top - this.camera.bottom);
+        
+        this.camera.position.x = touchStartCameraX - worldDeltaX;
+        this.camera.position.y = touchStartCameraY + worldDeltaY;
+        this.camera.lookAt(this.camera.position.x, this.camera.position.y, 0);
+      }
+    });
+
+    this.container.addEventListener('touchend', (event) => {
+      if (event.touches.length === 0) {
+        isTouchPanning = false;
+      }
+    });
+
+    // Touchpad pan support (two-finger drag)
+    let touchpadStartX = 0, touchpadStartY = 0;
+    let touchpadStartCameraX = 0, touchpadStartCameraY = 0;
+    let isTouchpadPanning = false;
+
+    this.container.addEventListener('touchstart', (event) => {
+      if (event.touches.length === 2) {
+        // Two-finger touch - could be pan or zoom
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        
+        // Calculate center point and distance
+        const centerX = (touch1.clientX + touch2.clientX) / 2;
+        const centerY = (touch1.clientY + touch2.clientY) / 2;
+        const distance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+        
+        // Store initial state
+        touchpadStartX = centerX;
+        touchpadStartY = centerY;
+        touchpadStartCameraX = this.camera.position.x;
+        touchpadStartCameraY = this.camera.position.y;
+        isTouchpadPanning = true;
+      }
+    });
+
+    this.container.addEventListener('touchmove', (event) => {
+      if (event.touches.length === 2 && isTouchpadPanning) {
+        event.preventDefault();
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        
+        // Calculate current center point
+        const centerX = (touch1.clientX + touch2.clientX) / 2;
+        const centerY = (touch1.clientY + touch2.clientY) / 2;
+        
+        const deltaX = centerX - touchpadStartX;
+        const deltaY = centerY - touchpadStartY;
+        
+        // Convert screen delta to world delta
+        const rect = this.container.getBoundingClientRect();
+        const worldDeltaX = (deltaX / rect.width) * (this.camera.right - this.camera.left);
+        const worldDeltaY = (deltaY / rect.height) * (this.camera.top - this.camera.bottom);
+        
+        this.camera.position.x = touchpadStartCameraX - worldDeltaX;
+        this.camera.position.y = touchpadStartCameraY + worldDeltaY;
+        this.camera.lookAt(this.camera.position.x, this.camera.position.y, 0);
+      }
+    });
+
+    this.container.addEventListener('touchend', (event) => {
+      if (event.touches.length < 2) {
+        isTouchpadPanning = false;
+      }
+    });
+
+    // Alternative: Right-click + drag for panning (common in CAD software)
+    this.container.addEventListener('mousedown', (event) => {
+      if (event.button === 2) { // Right mouse button
+        event.preventDefault();
+        this.startPan(event);
+      }
+    });
+
+    this.container.addEventListener('mouseup', (event) => {
+      if (event.button === 2) { // Right mouse button
+        event.preventDefault();
+        this.endPan();
+      }
+    });
+
+    // Prevent context menu on right-click
+    this.container.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+    });
+  }
+
+  startPan(event) {
+    this.isPanning = true;
+    this.panStart.x = event.clientX;
+    this.panStart.y = event.clientY;
+    this.panStartCamera.x = this.camera.position.x;
+    this.panStartCamera.y = this.camera.position.y;
+    
+    // Change cursor to indicate panning
+    this.container.style.cursor = 'grabbing';
+  }
+
+  updatePan(event) {
+    if (!this.isPanning) return;
+    
+    const deltaX = event.clientX - this.panStart.x;
+    const deltaY = event.clientY - this.panStart.y;
+    
+    // Convert screen delta to world delta
+    const rect = this.container.getBoundingClientRect();
+    const worldDeltaX = (deltaX / rect.width) * (this.camera.right - this.camera.left);
+    const worldDeltaY = (deltaY / rect.height) * (this.camera.top - this.camera.bottom);
+    
+    // Update camera position
+    this.camera.position.x = this.panStartCamera.x - worldDeltaX;
+    this.camera.position.y = this.panStartCamera.y + worldDeltaY;
+    this.camera.lookAt(this.camera.position.x, this.camera.position.y, 0);
+  }
+
+  endPan() {
+    this.isPanning = false;
+    
+    // Restore cursor
+    this.container.style.cursor = 'default';
+  }
+
+  resetView() {
+    // Reset camera to center on origin
+    this.camera.position.set(0, 0, 10);
+    this.camera.lookAt(0, 0, 0);
+    this.camera.up.set(0, 1, 0);
+    
+    // Update camera bounds to match current zoom
+    this.updateCameraBounds();
   }
 
   zoom(delta) {

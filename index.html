@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>Turtle</h1>
-    <span class="chip" style="margin-left:auto;color:#9bd7be">FD, BK, RT, LT, PU, PD, HOME, CS, SETPOS x y, SETHEADING d, PENCOLOR r g b, PENSIZE n, RAINBOW ON/OFF, HUESTEP n, ZOOM IN/OUT, REPEAT n [ … ]</span>
+    <span class="chip" style="margin-left:auto;color:#9bd7be">FD, BK, RT, LT, PU, PD, HOME, CS, SETPOS x y, SETHEADING d, PENCOLOR r g b, PENSIZE n, RAINBOW ON/OFF, HUESTEP n, ZOOM IN/OUT, REPEAT n [ … ] • Right-click + drag to pan</span>
   </header>
   <div class="wrap">
     <section class="left">
@@ -23,6 +23,7 @@
         <label>Pen color <input id="pencolor" type="color" value="#33ffaa"><span id="rainbowIndicator" style="display:none;margin-left:8px;color:#ff6b6b">🌈</span></label>
         <label>Zoom <input id="zoomSlider" type="range" min="0.001" max="100" step="0.01" value="1" style="width:80px"></label>
         <button id="toggleGridBtn" title="Toggle Grid">🔲</button>
+        <button id="resetViewBtn" title="Reset View to Center">🏠</button>
       </div>
       <textarea id="editor" spellcheck="false"></textarea>
       <div class="help">
@@ -42,6 +43,8 @@
             <p><code>HUESTEP n</code> — hue step in degrees (default 5)</p>
             <p><code>ZOOM IN</code> / <code>ZOOM OUT</code> — zoom in/out by 1.5x</p>
             <p><code>REPEAT n [ ... ]</code> — supports nesting</p>
+            <p><strong>Navigation:</strong> Middle mouse drag to pan, mouse wheel to zoom, Ctrl+Home to reset view</p>
+            <p><strong>Touchpad:</strong> Right-click + drag to pan, two-finger drag to pan, Shift + arrow keys to pan</p>
           </div>
         </details>
         <details>
