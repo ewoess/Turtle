@@ -17,13 +17,23 @@
         <button id="runBtn">Run</button>
         <button id="stepBtn">Step</button>
         <button id="resetBtn">Reset</button>
-        <button id="toggleCommandsBtn" title="Toggle Commands List (Ctrl+Shift+C)">📋</button>
-        <label>Speed <input id="speed" type="range" min="0" max="300" value="150"/></label>
-        <label>Pen size <input id="pensize" type="number" min="1" max="12" value="6" style="width:56px"></label>
-        <label>Pen color <input id="pencolor" type="color" value="#33ffaa"><span id="rainbowIndicator" style="display:none;margin-left:8px;color:#ff6b6b">🌈</span></label>
-        <label>Zoom <input id="zoomSlider" type="range" min="0.001" max="100" step="0.01" value="1" style="width:80px"></label>
+        <!-- <button id="toggleCommandsBtn" title="Toggle Commands List (Ctrl+Shift+C)">📋</button> -->
         <button id="toggleGridBtn" title="Toggle Grid">🔲</button>
         <button id="resetViewBtn" title="Reset View to Center">🏠</button>
+        <label>Pen size <input id="pensize" type="number" min="1" max="12" value="6" style="width:56px"></label>
+        <label>Pen color <input id="pencolor" type="color" value="#33ffaa"></label>
+        <label>Speed <select id="speed">
+          <option value="1">1 - Ultra Slow</option>
+          <option value="2">2</option>
+          <option value="3">3 - Slow</option>
+          <option value="4">4</option>
+          <option value="5">5 - Medium</option>
+          <option value="6">6</option>
+          <option value="7">7 - Fast</option>
+          <option value="8">8</option>
+          <option value="9">9 - Ultra Fast</option>
+        </select></label>
+        <label>Zoom <input id="zoomSlider" type="range" min="0.001" max="100" step="0.01" value="1" style="width:80px"></label>
       </div>
       <textarea id="editor" spellcheck="false"></textarea>
       <div class="help">

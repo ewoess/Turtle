@@ -79,6 +79,35 @@ export class Executor {
     this.updateVisualization();
   }
 
+  // Smooth movement with interpolation
+  moveSmooth(distance, steps = 10) {
+    const rad = THREE.MathUtils.degToRad(90 - this.turtleState.heading);
+    const dir = new THREE.Vector2(Math.cos(rad), Math.sin(rad));
+    const start = this.turtleState.pos.clone();
+    const end = start.clone().add(dir.multiplyScalar(distance));
+    
+    // Calculate intermediate positions
+    const positions = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const pos = start.clone().lerp(end, t);
+      positions.push(pos);
+    }
+    
+    // Update turtle position to final position
+    this.turtleState.pos.copy(end);
+    
+    // Draw segments if pen is down
+    if (this.turtleState.penDown) {
+      const color = this.turtleState.getCurrentColor();
+      for (let i = 1; i < positions.length; i++) {
+        this.threeScene.drawSegment(positions[i-1], positions[i], color);
+      }
+    }
+    
+    this.updateVisualization();
+  }
+
   setPosition(x, y) {
     this.turtleState.setPosition(x, y);
     this.updateVisualization();

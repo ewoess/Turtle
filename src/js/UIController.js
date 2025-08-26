@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 export class UIController {
   constructor(executor, interpreter, threeScene) {
     this.executor = executor;
@@ -30,13 +32,16 @@ export class UIController {
     this.posLbl = document.getElementById('posLbl');
     this.headLbl = document.getElementById('headLbl');
     this.commandsDetails = document.getElementById('commandsDetails');
+    this.examples = document.getElementById('examples');
   }
 
   setupEventListeners() {
     this.runBtn.addEventListener('click', () => this.handleRun());
     this.stepBtn.addEventListener('click', () => this.handleStep());
     this.resetBtn.addEventListener('click', () => this.handleReset());
-    this.toggleCommandsBtn.addEventListener('click', () => this.toggleCommands());
+    if (this.toggleCommandsBtn) {
+      this.toggleCommandsBtn.addEventListener('click', () => this.toggleCommands());
+    }
     this.toggleGridBtn.addEventListener('click', () => this.toggleGrid());
     this.resetViewBtn.addEventListener('click', () => this.resetView());
     
@@ -108,8 +113,11 @@ export class UIController {
       ZoomTest: `CS HOME PD\nREPEAT 4 [ FD 50 RT 90 ]\nZOOM IN\nREPEAT 4 [ FD 30 RT 90 ]\nZOOM OUT\nREPEAT 4 [ FD 80 RT 90 ]`
     };
     
-    const examples = document.getElementById('examples');
-    examples.textContent = Object.entries(samples).map(([k, v]) => `• ${k}\n${v}`).join('\n\n');
+    if (this.examples) {
+      this.examples.textContent = Object.entries(samples).map(([k, v]) => `• ${k}\n${v}`).join('\n\n');
+    } else {
+      console.error('Examples element not found!');
+    }
     
     // Set default program
     this.editor.value = `; Rainbow demo with zoom\nCS HOME PD\nRAINBOW ON\nHUESTEP 4\nPENSIZE 6\nREPEAT 60 [ FD 8 RT 7 ]\nZOOM IN\nREPEAT 60 [ FD 8 RT 7 ]`;
@@ -132,7 +140,9 @@ export class UIController {
     this.pencolor.value = currentColor;
     
     const isRainbow = this.executor.isRainbowOn();
-    this.rainbowIndicator.style.display = isRainbow ? 'inline' : 'none';
+    if (this.rainbowIndicator) {
+      this.rainbowIndicator.style.display = isRainbow ? 'inline' : 'none';
+    }
     
     // If rainbow is on, update the color picker periodically to show the cycling
     if (isRainbow) {
@@ -157,8 +167,10 @@ export class UIController {
   toggleCommands() {
     this.commandsDetails.open = !this.commandsDetails.open;
     // Update button text to indicate state
-    this.toggleCommandsBtn.textContent = this.commandsDetails.open ? '📋' : '📖';
-    this.toggleCommandsBtn.title = this.commandsDetails.open ? 'Hide Commands List (Ctrl+Shift+C)' : 'Show Commands List (Ctrl+Shift+C)';
+    if (this.toggleCommandsBtn) {
+      this.toggleCommandsBtn.textContent = this.commandsDetails.open ? '📋' : '📖';
+      this.toggleCommandsBtn.title = this.commandsDetails.open ? 'Hide Commands List (Ctrl+Shift+C)' : 'Show Commands List (Ctrl+Shift+C)';
+    }
   }
 
   toggleGrid() {
@@ -261,39 +273,102 @@ export class UIController {
       clearInterval(this.rainbowUpdateInterval);
       this.rainbowUpdateInterval = null;
     }
+    
+    // Reset fractional step accumulator
+    this.fractionalStepAccumulator = 0;
   }
 
   stepsThisFrame() {
-    const s = Math.max(0, Math.min(300, parseInt(this.speed.value, 10) || 0));
-    const sv = s / 300; // 0..1
-    // Adjust so that speed 0 (slowest) = ~1 step
-    // Speed 150 (middle) = ~5 steps (very slow middle)
-    // Speed 300 (fastest) = ~25 steps (reasonable fastest)
-    return 1 + Math.floor(sv * sv * 24); // 1 to ~25 steps per frame
+    const speed = parseInt(this.speed.value, 10) || 1;
+    // Speed values are 1-9, map to 0.25-24 steps per frame
+    // Speed 1 (Ultra Slow) = 0.25 steps per frame (very slow)
+    // Speed 2 = 2 steps per frame
+    // Speed 5 (Medium) = 4 steps per frame (same as Speed 2)
+    // Speed 9 (Ultra Fast) = 24 steps per frame
+    let stepsPerFrame;
+    if (speed === 1) {
+      // Speed 1: very slow (0.25 steps per frame = 1 step every 4 frames)
+      stepsPerFrame = 0.25;
+    } else if (speed <= 5) {
+      // Speeds 2-5: linear from 2 to 4
+      stepsPerFrame = 2 + Math.floor((speed - 2) * (2 / 3));
+    } else {
+      // Speeds 6-9: linear from 4 to 24
+      stepsPerFrame = 4 + Math.floor((speed - 5) * (20 / 4));
+    }
+    return Math.max(0.25, Math.min(24, stepsPerFrame));
   }
 
   tickRun() {
     if (!this.playing) return;
     
-    let n = this.stepsThisFrame();
-    while (n-- > 0) {
-      const next = this.programIterator?.next();
-      if (!next || next.done) {
-        this.setStatus('Program finished.');
-        this.playing = false;
-        this.runBtn.textContent = 'Run';
-        this.programIterator = null;
-        break;
+    const stepsPerFrame = this.stepsThisFrame();
+    
+    // Handle fractional steps for very slow speeds
+    if (stepsPerFrame < 1) {
+      // For fractional steps, we need to accumulate until we reach 1 full step
+      if (!this.fractionalStepAccumulator) {
+        this.fractionalStepAccumulator = 0;
       }
+      this.fractionalStepAccumulator += stepsPerFrame;
       
-      try {
-        this.executor.execute(next.value);
-        this.updatePositionDisplay();
-      } catch (e) {
-        this.setStatus(e.message, true);
-        this.playing = false;
-        this.runBtn.textContent = 'Run';
-        break;
+      if (this.fractionalStepAccumulator >= 1) {
+        // Execute one step with delay for smoothness
+        const next = this.programIterator?.next();
+        if (!next || next.done) {
+          this.setStatus('Program finished.');
+          this.playing = false;
+          this.runBtn.textContent = 'Run';
+          this.programIterator = null;
+          this.fractionalStepAccumulator = 0;
+          return;
+        }
+        
+        try {
+          this.executor.execute(next.value);
+          this.updatePositionDisplay();
+          
+          // Add a small delay for smoother movement
+          const speed = parseInt(this.speed.value, 10) || 1;
+          const delay = Math.max(10, 100 - speed * 8); // More delay for slower speeds
+          setTimeout(() => {
+            if (this.playing) {
+              requestAnimationFrame(() => this.tickRun());
+            }
+          }, delay);
+          return;
+        } catch (e) {
+          this.setStatus(e.message, true);
+          this.playing = false;
+          this.runBtn.textContent = 'Run';
+          this.fractionalStepAccumulator = 0;
+          return;
+        }
+        
+        this.fractionalStepAccumulator -= 1;
+      }
+    } else {
+      // Handle integer steps (normal case)
+      let n = Math.floor(stepsPerFrame);
+      while (n-- > 0) {
+        const next = this.programIterator?.next();
+        if (!next || next.done) {
+          this.setStatus('Program finished.');
+          this.playing = false;
+          this.runBtn.textContent = 'Run';
+          this.programIterator = null;
+          break;
+        }
+        
+        try {
+          this.executor.execute(next.value);
+          this.updatePositionDisplay();
+        } catch (e) {
+          this.setStatus(e.message, true);
+          this.playing = false;
+          this.runBtn.textContent = 'Run';
+          break;
+        }
       }
     }
     
@@ -301,6 +376,8 @@ export class UIController {
       requestAnimationFrame(() => this.tickRun());
     }
   }
+
+
 
   // Initial setup
   initialize() {
