@@ -24,7 +24,8 @@ export class UIController {
     this.pensize = document.getElementById('pensize');
     this.pencolor = document.getElementById('pencolor');
     this.rainbowIndicator = document.getElementById('rainbowIndicator');
-    this.zoomSlider = document.getElementById('zoomSlider');
+    this.zoomOutBtn = document.getElementById('zoomOutBtn');
+    this.zoomInBtn = document.getElementById('zoomInBtn');
     this.toggleGridBtn = document.getElementById('toggleGridBtn');
     this.resetViewBtn = document.getElementById('resetViewBtn');
     this.statusText = document.getElementById('statusText');
@@ -92,11 +93,12 @@ export class UIController {
       this.executor.setPenColor(r, g, b);
     });
 
-    this.zoomSlider.addEventListener('input', () => {
-      const zoom = parseFloat(this.zoomSlider.value);
-      this.threeScene.setZoom(zoom);
-      // Update tooltip to show current zoom level
-      this.zoomSlider.title = `Zoom: ${zoom.toFixed(2)}x`;
+    this.zoomOutBtn.addEventListener('click', () => {
+      this.threeScene.zoomOut();
+    });
+    
+    this.zoomInBtn.addEventListener('click', () => {
+      this.threeScene.zoomIn();
     });
   }
 
@@ -175,9 +177,8 @@ export class UIController {
 
   toggleGrid() {
     const isVisible = this.threeScene.toggleGrid();
-    // Update button text to indicate state
-    this.toggleGridBtn.textContent = isVisible ? '🔲' : '⬜';
     this.toggleGridBtn.title = isVisible ? 'Hide Grid' : 'Show Grid';
+    this.toggleGridBtn.style.opacity = isVisible ? '1' : '0.5';
   }
 
   resetView() {

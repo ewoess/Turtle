@@ -18,8 +18,10 @@
         <button id="stepBtn">Step</button>
         <button id="resetBtn">Reset</button>
         <!-- <button id="toggleCommandsBtn" title="Toggle Commands List (Ctrl+Shift+C)">📋</button> -->
-        <button id="toggleGridBtn" title="Toggle Grid">🔲</button>
+        <button id="toggleGridBtn" title="Toggle Grid">⊞</button>
         <button id="resetViewBtn" title="Reset View to Center">🏠</button>
+        <button id="zoomOutBtn" title="Zoom Out">-</button>
+        <button id="zoomInBtn" title="Zoom In">+</button>
         <label>Pen size <input id="pensize" type="number" min="1" max="12" value="6" style="width:56px"></label>
         <label>Pen color <input id="pencolor" type="color" value="#33ffaa"></label>
         <label>Speed <select id="speed">
@@ -33,7 +35,6 @@
           <option value="8">8</option>
           <option value="9">9 - Ultra Fast</option>
         </select></label>
-        <label>Zoom <input id="zoomSlider" type="range" min="0.001" max="100" step="0.01" value="1" style="width:80px"></label>
       </div>
       <textarea id="editor" spellcheck="false"></textarea>
       <div class="help">
