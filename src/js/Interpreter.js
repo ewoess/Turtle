@@ -3,7 +3,7 @@ export class Interpreter {
     this.keywords = new Set([
       'FD', 'BK', 'RT', 'LT', 'PU', 'PD', 'HOME', 'CS', 
       'SETPOS', 'SETHEADING', 'PENCOLOR', 'PENSIZE', 
-      'RAINBOW', 'HUESTEP', 'REPEAT'
+      'RAINBOW', 'HUESTEP', 'REPEAT', 'ZOOM'
     ]);
   }
 
@@ -76,6 +76,12 @@ export class Interpreter {
             const m = (tokens[i++] || '').toUpperCase();
             if (m !== 'ON' && m !== 'OFF') throw new Error('RAINBOW ON|OFF');
             block.push({ op: 'RAINBOW', on: m === 'ON' });
+            break;
+          }
+          case 'ZOOM': {
+            const m = (tokens[i++] || '').toUpperCase();
+            if (m !== 'IN' && m !== 'OUT') throw new Error('ZOOM IN|OUT');
+            block.push({ op: 'ZOOM', direction: m });
             break;
           }
           case 'PU': 

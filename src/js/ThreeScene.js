@@ -6,10 +6,11 @@ export class ThreeScene {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x000000);
     
-    // Zoom state
+    // Zoom state - now infinite
     this.zoomLevel = 1.0;
-    this.minZoom = 0.1;
-    this.maxZoom = 5.0;
+    this.minZoom = 0.001; // Much smaller minimum for infinite zoom out
+    this.maxZoom = 1000.0; // Much larger maximum for infinite zoom in
+    this.zoomFactor = 0.1; // 10% change per wheel step for consistent zooming
     
     this.setupRenderer();
     this.setupGrid();
@@ -136,12 +137,11 @@ export class ThreeScene {
   }
 
   setupZoomControls() {
-    // Mouse wheel zoom
+    // Mouse wheel zoom with mouse focus
     this.container.addEventListener('wheel', (event) => {
       event.preventDefault();
-      const zoomSpeed = 0.1;
-      const zoomDelta = event.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-      this.zoom(zoomDelta);
+      const zoomDelta = event.deltaY > 0 ? -this.zoomFactor : this.zoomFactor;
+      this.zoomAtMouse(event, zoomDelta);
     });
 
     // Touch zoom (pinch to zoom)
@@ -162,7 +162,7 @@ export class ThreeScene {
           event.touches[0].clientX - event.touches[1].clientX,
           event.touches[0].clientY - event.touches[1].clientY
         );
-        const zoomDelta = (currentDistance - initialDistance) * 0.01;
+        const zoomDelta = (currentDistance - initialDistance) * 0.005;
         this.zoom(zoomDelta);
         initialDistance = currentDistance;
       }
@@ -170,10 +170,60 @@ export class ThreeScene {
   }
 
   zoom(delta) {
-    const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel + delta));
-    if (newZoom !== this.zoomLevel) {
+    // Use multiplicative zooming for consistency with mouse zoom
+    const zoomMultiplier = 1 + delta;
+    const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel * zoomMultiplier));
+    
+    // Only apply zoom if the change is significant enough
+    const zoomChange = Math.abs(newZoom - this.zoomLevel) / this.zoomLevel;
+    if (zoomChange > 0.001 && newZoom !== this.zoomLevel) {
       this.zoomLevel = newZoom;
       this.updateCamera();
+      this.updateZoomSlider();
+    }
+  }
+
+  zoomAtMouse(event, delta) {
+    // Get mouse position in normalized device coordinates (-1 to +1)
+    const rect = this.container.getBoundingClientRect();
+    const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    // Calculate the world position under the mouse before zoom
+    const vector = new THREE.Vector3(mouseX, mouseY, 0);
+    vector.unproject(this.camera);
+    vector.z = 0; // Set to 0 since we're in 2D
+    
+    // Use multiplicative zooming for consistent behavior
+    const zoomMultiplier = 1 + delta; // delta is now a factor like 0.1 or -0.1
+    const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel * zoomMultiplier));
+    
+    // Only apply zoom if the change is significant enough
+    const zoomChange = Math.abs(newZoom - this.zoomLevel) / this.zoomLevel;
+    if (zoomChange > 0.001 && newZoom !== this.zoomLevel) {
+      this.zoomLevel = newZoom;
+      
+      // Update camera bounds first
+      this.updateCameraBounds();
+      
+      // Calculate the new world position under the mouse after zoom
+      const newVector = new THREE.Vector3(mouseX, mouseY, 0);
+      newVector.unproject(this.camera);
+      newVector.z = 0;
+      
+      // Calculate the offset to keep the mouse position fixed
+      const offsetX = vector.x - newVector.x;
+      const offsetY = vector.y - newVector.y;
+      
+      // Apply the offset to the camera position
+      this.camera.position.x += offsetX;
+      this.camera.position.y += offsetY;
+      
+      // Update the camera's lookAt target to match the new position
+      this.camera.lookAt(this.camera.position.x, this.camera.position.y, 0);
+      
+      // Update grid and slider
+      this.updateGrid();
       this.updateZoomSlider();
     }
   }
@@ -181,6 +231,24 @@ export class ThreeScene {
   setZoom(zoom) {
     this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, zoom));
     this.updateCamera();
+  }
+
+  zoomIn() {
+    const zoomFactor = 1.5;
+    this.zoomLevel = Math.min(this.maxZoom, this.zoomLevel * zoomFactor);
+    this.updateCamera();
+    this.updateZoomSlider();
+  }
+
+  zoomOut() {
+    const zoomFactor = 1.5;
+    this.zoomLevel = Math.max(this.minZoom, this.zoomLevel / zoomFactor);
+    this.updateCamera();
+    this.updateZoomSlider();
+  }
+
+  setZoomFactor(factor) {
+    this.zoomFactor = Math.max(0.01, Math.min(0.5, factor));
   }
 
   updateCameraBounds() {
@@ -212,6 +280,7 @@ export class ThreeScene {
     const slider = document.getElementById('zoomSlider');
     if (slider) {
       slider.value = this.zoomLevel;
+      slider.title = `Zoom: ${this.zoomLevel.toFixed(2)}x`;
     }
   }
 

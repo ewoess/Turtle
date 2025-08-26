@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>Turtle</h1>
-    <span class="chip" style="margin-left:auto;color:#9bd7be">FD, BK, RT, LT, PU, PD, HOME, CS, SETPOS x y, SETHEADING d, PENCOLOR r g b, PENSIZE n, RAINBOW ON/OFF, HUESTEP n, REPEAT n [ … ]</span>
+    <span class="chip" style="margin-left:auto;color:#9bd7be">FD, BK, RT, LT, PU, PD, HOME, CS, SETPOS x y, SETHEADING d, PENCOLOR r g b, PENSIZE n, RAINBOW ON/OFF, HUESTEP n, ZOOM IN/OUT, REPEAT n [ … ]</span>
   </header>
   <div class="wrap">
     <section class="left">
@@ -21,7 +21,7 @@
         <label>Speed <input id="speed" type="range" min="0" max="300" value="150"/></label>
         <label>Pen size <input id="pensize" type="number" min="1" max="12" value="6" style="width:56px"></label>
         <label>Pen color <input id="pencolor" type="color" value="#33ffaa"><span id="rainbowIndicator" style="display:none;margin-left:8px;color:#ff6b6b">🌈</span></label>
-        <label>Zoom <input id="zoomSlider" type="range" min="0.1" max="5" step="0.1" value="1" style="width:80px"></label>
+        <label>Zoom <input id="zoomSlider" type="range" min="0.001" max="100" step="0.01" value="1" style="width:80px"></label>
         <button id="toggleGridBtn" title="Toggle Grid">🔲</button>
       </div>
       <textarea id="editor" spellcheck="false"></textarea>
@@ -40,6 +40,7 @@
             <p><code>PENSIZE n</code> — 1..12</p>
             <p><code>RAINBOW ON/OFF</code> — auto‑cycle color each segment</p>
             <p><code>HUESTEP n</code> — hue step in degrees (default 5)</p>
+            <p><code>ZOOM IN</code> / <code>ZOOM OUT</code> — zoom in/out by 1.5x</p>
             <p><code>REPEAT n [ ... ]</code> — supports nesting</p>
           </div>
         </details>

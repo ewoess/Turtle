@@ -55,6 +55,9 @@ export class Executor {
       case 'RAINBOW':
         this.setRainbow(cmd.on); 
         break;
+      case 'ZOOM':
+        this.zoom(cmd.direction); 
+        break;
       default: 
         throw new Error('Unhandled op ' + cmd.op);
     }
@@ -106,6 +109,14 @@ export class Executor {
     this.turtleState.setRainbow(on);
     if (this.uiController) {
       this.uiController.updateColorPicker();
+    }
+  }
+
+  zoom(direction) {
+    if (direction === 'IN') {
+      this.threeScene.zoomIn();
+    } else if (direction === 'OUT') {
+      this.threeScene.zoomOut();
     }
   }
 

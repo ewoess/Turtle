@@ -44,6 +44,19 @@ export class UIController {
         e.preventDefault();
         this.toggleCommands();
       }
+      // Zoom shortcuts
+      if (e.ctrlKey && e.key === '=') {
+        e.preventDefault();
+        this.threeScene.zoomIn();
+      }
+      if (e.ctrlKey && e.key === '-') {
+        e.preventDefault();
+        this.threeScene.zoomOut();
+      }
+      if (e.ctrlKey && e.key === '0') {
+        e.preventDefault();
+        this.threeScene.setZoom(1.0);
+      }
     });
     
     this.pensize.addEventListener('change', () => {
@@ -63,6 +76,8 @@ export class UIController {
     this.zoomSlider.addEventListener('input', () => {
       const zoom = parseFloat(this.zoomSlider.value);
       this.threeScene.setZoom(zoom);
+      // Update tooltip to show current zoom level
+      this.zoomSlider.title = `Zoom: ${zoom.toFixed(2)}x`;
     });
   }
 
@@ -75,14 +90,15 @@ export class UIController {
       Nested: `CS HOME PD\nRAINBOW ON\nREPEAT 12 [\n  REPEAT 8 [ FD 80 RT 45 ]\n  RT 30\n]`,
       Snowflake: `CS HOME PD\nPENCOLOR 160 220 255\nREPEAT 6 [\n  REPEAT 3 [ FD 100 RT 60 ]\n  RT 60\n]`,
       PerfCircle: `CS HOME PD\nRAINBOW ON\nHUESTEP 3\nREPEAT 2000 [ FD 3 RT 5 ]`,
-      ManyCircles: `CS HOME PD\nRAINBOW ON\nPENSIZE 2\nHUESTEP 5\nPU HOME\nREPEAT 11 [ RT 30 HOME PU FD 160 LT 90 FD 65 LT 90 PD REPEAT 51 [ FD 8 RT 7 ] PU ]\nHOME PD`
+      ManyCircles: `CS HOME PD\nRAINBOW ON\nPENSIZE 2\nHUESTEP 5\nPU HOME\nREPEAT 11 [ RT 30 HOME PU FD 160 LT 90 FD 65 LT 90 PD REPEAT 51 [ FD 8 RT 7 ] PU ]\nHOME PD`,
+      ZoomTest: `CS HOME PD\nREPEAT 4 [ FD 50 RT 90 ]\nZOOM IN\nREPEAT 4 [ FD 30 RT 90 ]\nZOOM OUT\nREPEAT 4 [ FD 80 RT 90 ]`
     };
     
     const examples = document.getElementById('examples');
     examples.textContent = Object.entries(samples).map(([k, v]) => `• ${k}\n${v}`).join('\n\n');
     
     // Set default program
-    this.editor.value = `; Rainbow demo\nCS HOME PD\nRAINBOW ON\nHUESTEP 4\nPENSIZE 6\nREPEAT 120 [ FD 8 RT 7 ]`;
+    this.editor.value = `; Rainbow demo with zoom\nCS HOME PD\nRAINBOW ON\nHUESTEP 4\nPENSIZE 6\nREPEAT 60 [ FD 8 RT 7 ]\nZOOM IN\nREPEAT 60 [ FD 8 RT 7 ]`;
   }
 
   setStatus(message, isError = false) {
