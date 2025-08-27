@@ -112,7 +112,14 @@ export class UIController {
       Snowflake: `CS HOME PD\nPENCOLOR 160 220 255\nREPEAT 6 [\n  REPEAT 3 [ FD 100 RT 60 ]\n  RT 60\n]`,
       PerfCircle: `CS HOME PD\nRAINBOW ON\nHUESTEP 3\nREPEAT 2000 [ FD 3 RT 5 ]`,
       ManyCircles: `CS HOME PD\nRAINBOW ON\nPENSIZE 2\nHUESTEP 5\nPU HOME\nREPEAT 11 [ RT 30 HOME PU FD 160 LT 90 FD 65 LT 90 PD REPEAT 51 [ FD 8 RT 7 ] PU ]\nHOME PD`,
-      ZoomTest: `CS HOME PD\nREPEAT 4 [ FD 50 RT 90 ]\nZOOM IN\nREPEAT 4 [ FD 30 RT 90 ]\nZOOM OUT\nREPEAT 4 [ FD 80 RT 90 ]`
+      ZoomTest: `CS HOME PD\nREPEAT 4 [ FD 50 RT 90 ]\nZOOM IN\nREPEAT 4 [ FD 30 RT 90 ]\nZOOM OUT\nREPEAT 4 [ FD 80 RT 90 ]`,
+      Parabola: `CS HOME PD\nPENCOLOR 255 100 100\nPENSIZE 3\nPLOT x^2 FROM -5 TO 5 STEPS 100`,
+      SineWave: `CS HOME PD\nPENCOLOR 100 255 100\nPENSIZE 2\nPLOT sin(x) FROM -2*pi TO 2*pi STEPS 200`,
+      Circle: `CS HOME PD\nPENCOLOR 100 100 255\nPENSIZE 2\nPLOT sqrt(25-x^2) FROM -5 TO 5 STEPS 100\nPLOT -sqrt(25-x^2) FROM -5 TO 5 STEPS 100`,
+      Complex: `CS HOME PD\nPENCOLOR 255 150 50\nPENSIZE 2\nPLOT x^3 - 2*x FROM -3 TO 3 STEPS 150`,
+      Exponential: `CS HOME PD\nPENCOLOR 255 100 255\nPENSIZE 2\nPLOT exp(x/3) FROM -5 TO 5 STEPS 150`,
+      Logarithm: `CS HOME PD\nPENCOLOR 255 255 100\nPENSIZE 2\nPLOT log(x+1) FROM -0.9 TO 10 STEPS 150`,
+      Spiral: `CS HOME PD\nPENCOLOR 100 255 255\nPENSIZE 2\nPLOT x*sin(x) FROM 0 TO 4*pi STEPS 200`
     };
     
     if (this.examples) {
@@ -122,7 +129,7 @@ export class UIController {
     }
     
     // Set default program
-    this.editor.value = `; Rainbow demo with zoom\nCS HOME PD\nRAINBOW ON\nHUESTEP 4\nPENSIZE 6\nREPEAT 60 [ FD 8 RT 7 ]\nZOOM IN\nREPEAT 60 [ FD 8 RT 7 ]`;
+    this.editor.value = `; Test plotting\nCS HOME PD\nPENCOLOR 255 100 100\nPENSIZE 5\nPLOT x^2 FROM -5 TO 5 STEPS 50`;
   }
 
   setStatus(message, isError = false) {

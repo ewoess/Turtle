@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 
 export class Executor {
-  constructor(turtleState, threeScene) {
+  constructor(turtleState, threeScene, interpreter) {
     this.turtleState = turtleState;
     this.threeScene = threeScene;
+    this.interpreter = interpreter;
     this.uiController = null;
   }
 
@@ -57,6 +58,12 @@ export class Executor {
         break;
       case 'ZOOM':
         this.zoom(cmd.direction); 
+        break;
+      case 'PLOT':
+        this.plot(cmd.expression, cmd.xMin, cmd.xMax, cmd.steps); 
+        break;
+      case 'PLOT_STEP':
+        this.plotStep(cmd.expression, cmd.x, cmd.isFirst); 
         break;
       default: 
         throw new Error('Unhandled op ' + cmd.op);
@@ -147,6 +154,122 @@ export class Executor {
     } else if (direction === 'OUT') {
       this.threeScene.zoomOut();
     }
+  }
+
+  plot(expression, xMin, xMax, steps) {
+    console.log(`Plotting: ${expression} from ${xMin} to ${xMax} with ${steps} steps`);
+    
+    // Save current turtle state
+    const originalPos = this.turtleState.getPosition();
+    const originalHeading = this.turtleState.getHeading();
+    const originalPenDown = this.turtleState.penDown;
+    
+    console.log(`Original turtle state: pos=${originalPos.x},${originalPos.y}, heading=${originalHeading}, penDown=${originalPenDown}`);
+    
+    // Set pen down for plotting
+    this.turtleState.penDown = true;
+    
+    // Use the interpreter to evaluate expressions
+    if (!this.interpreter) {
+      throw new Error('Interpreter not available for plotting');
+    }
+    
+    // Calculate step size
+    const stepSize = (xMax - xMin) / steps;
+    console.log(`Step size: ${stepSize}`);
+    
+    // Find first valid point
+    let firstPoint = null;
+    for (let i = 0; i <= steps; i++) {
+      const x = xMin + i * stepSize;
+      const y = this.interpreter.evaluateExpression(expression, x);
+      if (y !== null) {
+        firstPoint = { x, y };
+        console.log(`First valid point: (${x}, ${y})`);
+        break;
+      }
+    }
+    
+    if (!firstPoint) {
+      throw new Error(`Could not evaluate expression: ${expression}`);
+    }
+    
+    // Move to first point without drawing
+    console.log(`Moving to first point: (${firstPoint.x}, ${firstPoint.y})`);
+    this.turtleState.setPosition(firstPoint.x, firstPoint.y);
+    
+    // Plot the curve by drawing segments
+    let pointsPlotted = 0;
+    let previousPoint = firstPoint;
+    
+    for (let i = 1; i <= steps; i++) {
+      const x = xMin + i * stepSize;
+      const y = this.interpreter.evaluateExpression(expression, x);
+      
+      if (y !== null) {
+        const currentPoint = { x, y };
+        
+        // Draw segment from previous point to current point
+        const start = new THREE.Vector2(previousPoint.x, previousPoint.y);
+        const end = new THREE.Vector2(currentPoint.x, currentPoint.y);
+        const color = this.turtleState.getCurrentColor();
+        
+        this.threeScene.drawSegment(start, end, color);
+        
+        // Update turtle position
+        this.turtleState.setPosition(currentPoint.x, currentPoint.y);
+        previousPoint = currentPoint;
+        pointsPlotted++;
+      }
+    }
+    
+    console.log(`Plotted ${pointsPlotted} points`);
+    
+    // The turtle is already at the last point of the plot
+    // Just lift the pen so it doesn't draw when moved
+    this.turtleState.penDown = false;
+    
+    // Update visualization to show the turtle in its final position
+    this.updateVisualization();
+  }
+
+  plotStep(expression, x, isFirst) {
+    // Use the interpreter to evaluate expressions
+    if (!this.interpreter) {
+      throw new Error('Interpreter not available for plotting');
+    }
+    
+    const y = this.interpreter.evaluateExpression(expression, x);
+    
+    if (y !== null) {
+      if (isFirst) {
+        // First point: just move there without drawing
+        this.turtleState.penDown = true;
+        this.turtleState.setPosition(x, y);
+      } else {
+        // Subsequent points: draw line from current position to new point
+        const currentPos = this.turtleState.getPosition();
+        const start = new THREE.Vector2(currentPos.x, currentPos.y);
+        const end = new THREE.Vector2(x, y);
+        const color = this.turtleState.getCurrentColor();
+        
+        // Calculate the direction the turtle should face
+        const dx = x - currentPos.x;
+        const dy = y - currentPos.y;
+        const angle = Math.atan2(dx, dy) * 180 / Math.PI; // Convert to degrees, Logo-style (0° is up)
+        
+        // Turn turtle to face the direction of movement
+        this.turtleState.setHeading(angle);
+        
+        // Draw the segment
+        this.threeScene.drawSegment(start, end, color);
+        
+        // Move to the new position
+        this.turtleState.setPosition(x, y);
+      }
+    }
+    
+    this.updateVisualization();
   }
 
   home() {

@@ -15,7 +15,7 @@ class TurtleApp {
     this.turtleState = new TurtleState();
     this.threeScene = new ThreeScene(container);
     this.interpreter = new Interpreter();
-    this.executor = new Executor(this.turtleState, this.threeScene);
+    this.executor = new Executor(this.turtleState, this.threeScene, this.interpreter);
     this.uiController = new UIController(this.executor, this.interpreter, this.threeScene);
     
     // Set up the reference for color picker updates
