@@ -135,6 +135,10 @@ export class ThreeScene {
     this.pathColors = [];
     this.pathGroup = new THREE.Group();
     this.scene.add(this.pathGroup);
+    
+    // Separate group for dots so they persist
+    this.dotsGroup = new THREE.Group();
+    this.scene.add(this.dotsGroup);
   }
 
   setupResizeHandler() {
@@ -732,6 +736,14 @@ export class ThreeScene {
       child.geometry.dispose();
       child.material.dispose();
     }
+    
+    // Clear all dots
+    while (this.dotsGroup.children.length > 0) {
+      const child = this.dotsGroup.children[0];
+      this.dotsGroup.remove(child);
+      child.geometry.dispose();
+      child.material.dispose();
+    }
   }
 
   setLineWidth(width) {
@@ -755,5 +767,20 @@ export class ThreeScene {
 
   render() {
     this.renderer.render(this.scene, this.camera);
+  }
+
+  drawCircle(x, y, radius, color) {
+    // Create a circle geometry
+    const geometry = new THREE.CircleGeometry(radius, 32);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: color,
+      side: THREE.DoubleSide
+    });
+    
+    const circle = new THREE.Mesh(geometry, material);
+    circle.position.set(x, y, 0.1); // Slightly above the path to ensure visibility
+    
+    // Add to the dots group so it persists but can be cleared separately
+    this.dotsGroup.add(circle);
   }
 }

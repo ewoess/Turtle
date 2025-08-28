@@ -50,9 +50,13 @@ export class Interpreter {
       .replace(/;.*$/gm, '') // strip ; comments
       .replace(/\[/g, ' [ ') // pad brackets
       .replace(/\]/g, ' ] ')
+      .replace(/,/g, ' , ') // pad commas
       .replace(/\s+/g, ' ')
       .trim();
-    return replaced.length ? replaced.split(' ') : [];
+    
+    const tokens = replaced.length ? replaced.split(' ') : [];
+    console.log('Tokenized:', tokens);
+    return tokens;
   }
 
   parse(tokens) {
@@ -128,31 +132,113 @@ export class Interpreter {
             
             // Parse optional parameters
             let xMin = -10, xMax = 10, steps = 100;
+            let xValues = null;
+            let showDots = false;
+            let dotColor = null;
+            let smooth = true;
+            let hasAtArray = false;
             
-            // Check for range parameters
-            if (i < tokens.length && tokens[i].toUpperCase() === 'FROM') {
-              i++; // skip FROM
-              xMin = Number(tokens[i++]);
-              if (Number.isNaN(xMin)) throw new Error('PLOT FROM x1 TO x2');
+            // Parse parameters
+            while (i < tokens.length) {
+              const token = tokens[i].toUpperCase();
+              
+              if (token === 'FROM') {
+                i++; // skip FROM
+                xMin = Number(tokens[i++]);
+                if (Number.isNaN(xMin)) throw new Error('PLOT FROM x1 TO x2');
+                smooth = true;
+              } else if (token === 'TO') {
+                i++; // skip TO
+                xMax = Number(tokens[i++]);
+                if (Number.isNaN(xMax)) throw new Error('PLOT FROM x1 TO x2');
+                smooth = true;
+              } else if (token === 'STEPS') {
+                i++; // skip STEPS
+                steps = Number(tokens[i++]);
+                if (Number.isNaN(steps) || steps < 1) throw new Error('PLOT STEPS n (minimum 1)');
+                if (steps > 10000) throw new Error('PLOT STEPS n (maximum 10000 for performance)');
+                smooth = true;
+              } else if (token === 'AT') {
+                i++; // skip AT
+                if (tokens[i] !== '[') throw new Error('PLOT AT [x1,x2,x3,...]');
+                i++; // skip [
+                
+                // Parse array of x values
+                xValues = [];
+                console.log('Parsing AT array...');
+                while (i < tokens.length && tokens[i] !== ']') {
+                  console.log(`Current token at index ${i}: "${tokens[i]}"`);
+                  const x = Number(tokens[i++]);
+                  console.log(`Parsed x value: ${x}, isNaN: ${Number.isNaN(x)}`);
+                  if (Number.isNaN(x)) throw new Error(`Invalid number in array: "${tokens[i-1]}"`);
+                  xValues.push(x);
+                  
+                  // Skip comma if present
+                  if (i < tokens.length && tokens[i] === ',') {
+                    console.log('Skipping comma');
+                    i++;
+                  }
+                }
+                
+                if (i >= tokens.length || tokens[i] !== ']') {
+                  throw new Error('Missing closing ] in array');
+                }
+                i++; // skip ]
+                hasAtArray = true;
+                smooth = false; // AT array overrides smooth plotting
+                console.log(`Parsed xValues array: [${xValues.join(', ')}]`);
+              } else if (token === 'SMOOTH') {
+                i++; // skip SMOOTH
+                smooth = true;
+              } else if (token === 'DOTS') {
+                i++; // skip DOTS
+                showDots = true;
+                console.log('DOTS parameter detected');
+              } else if (token === 'COLOR') {
+                i++; // skip COLOR
+                const r = Number(tokens[i++]);
+                const g = Number(tokens[i++]);
+                const b = Number(tokens[i++]);
+                if ([r, g, b].some(n => Number.isNaN(n))) throw new Error('DOT COLOR r g b (0-255)');
+                dotColor = { r, g, b };
+              } else {
+                break; // Unknown parameter, stop parsing
+              }
             }
             
-            if (i < tokens.length && tokens[i].toUpperCase() === 'TO') {
-              i++; // skip TO
-              xMax = Number(tokens[i++]);
-              if (Number.isNaN(xMax)) throw new Error('PLOT FROM x1 TO x2');
-            }
-            
-            if (i < tokens.length && tokens[i].toUpperCase() === 'STEPS') {
-              i++; // skip STEPS
-              steps = Number(tokens[i++]);
-              if (Number.isNaN(steps) || steps < 10 || steps > 1000) throw new Error('PLOT STEPS n (10-1000)');
-            }
-            
-            // Create individual PLOT_STEP commands for each point
-            const stepSize = (xMax - xMin) / steps;
-            for (let i = 0; i <= steps; i++) {
-              const x = xMin + i * stepSize;
-              block.push({ op: 'PLOT_STEP', expression, x, isFirst: i === 0 });
+            // Create plot commands
+            if (xValues) {
+              // Plot at specific x values (AT takes priority over FROM/TO)
+              if (hasAtArray && (xMin !== -10 || xMax !== 10)) {
+                console.warn('PLOT: AT array overrides FROM/TO range. Using only the specified x values.');
+              }
+              console.log(`Creating ${xValues.length} PLOT_STEP commands for xValues: [${xValues.join(', ')}]`);
+              for (let i = 0; i < xValues.length; i++) {
+                const x = xValues[i];
+                              console.log(`Creating PLOT_STEP for x=${x}, isFirst=${i === 0}, showDots=${showDots}`);
+              block.push({ 
+                op: 'PLOT_STEP', 
+                expression, 
+                x, 
+                isFirst: i === 0,
+                showDots,
+                dotColor
+              });
+              }
+            } else if (smooth) {
+              // Smooth plot
+              const stepSize = (xMax - xMin) / steps;
+              for (let i = 0; i <= steps; i++) {
+                const x = xMin + i * stepSize;
+                block.push({ 
+                  op: 'PLOT_STEP', 
+                  expression, 
+                  x, 
+                  isFirst: i === 0,
+                  showDots,
+                  dotColor
+                });
+              }
             }
             break;
           }

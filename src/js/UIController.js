@@ -119,7 +119,9 @@ export class UIController {
       Complex: `CS HOME PD\nPENCOLOR 255 150 50\nPENSIZE 2\nPLOT x^3 - 2*x FROM -3 TO 3 STEPS 150`,
       Exponential: `CS HOME PD\nPENCOLOR 255 100 255\nPENSIZE 2\nPLOT exp(x/3) FROM -5 TO 5 STEPS 150`,
       Logarithm: `CS HOME PD\nPENCOLOR 255 255 100\nPENSIZE 2\nPLOT log(x+1) FROM -0.9 TO 10 STEPS 150`,
-      Spiral: `CS HOME PD\nPENCOLOR 100 255 255\nPENSIZE 2\nPLOT x*sin(x) FROM 0 TO 4*pi STEPS 200`
+      Spiral: `CS HOME PD\nPENCOLOR 100 255 255\nPENSIZE 2\nPLOT x*sin(x) FROM 0 TO 4*pi STEPS 200`,
+      Points: `CS HOME PD\nPENCOLOR 255 255 100\nPENSIZE 3\nPLOT x^2 AT [1,2,3,4,5] DOTS`,
+      SmoothDots: `CS HOME PD\nPENCOLOR 100 255 100\nPENSIZE 2\nPLOT sin(x) FROM -2*pi TO 2*pi STEPS 50 DOTS COLOR 255 100 100`
     };
     
     if (this.examples) {
@@ -129,7 +131,7 @@ export class UIController {
     }
     
     // Set default program
-    this.editor.value = `; Test plotting\nCS HOME PD\nPENCOLOR 255 100 100\nPENSIZE 5\nPLOT x^2 FROM -5 TO 5 STEPS 50`;
+    this.editor.value = `; Test plotting\nCS HOME PD\nPENCOLOR 255 100 100\nPENSIZE 1\nPLOT x^2 AT [-3,-2,-1,0,1,2,3]`;
   }
 
   setStatus(message, isError = false) {

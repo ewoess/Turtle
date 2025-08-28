@@ -63,7 +63,7 @@ export class Executor {
         this.plot(cmd.expression, cmd.xMin, cmd.xMax, cmd.steps); 
         break;
       case 'PLOT_STEP':
-        this.plotStep(cmd.expression, cmd.x, cmd.isFirst); 
+        this.plotStep(cmd.expression, cmd.x, cmd.isFirst, cmd.showDots, cmd.dotColor); 
         break;
       default: 
         throw new Error('Unhandled op ' + cmd.op);
@@ -233,19 +233,28 @@ export class Executor {
     this.updateVisualization();
   }
 
-  plotStep(expression, x, isFirst) {
+  plotStep(expression, x, isFirst, showDots = false, dotColor = null) {
+    console.log(`plotStep called: expression=${expression}, x=${x}, isFirst=${isFirst}, showDots=${showDots}`);
+    
     // Use the interpreter to evaluate expressions
     if (!this.interpreter) {
       throw new Error('Interpreter not available for plotting');
     }
     
     const y = this.interpreter.evaluateExpression(expression, x);
+    console.log(`Evaluated y = ${y} for x = ${x}`);
     
     if (y !== null) {
       if (isFirst) {
         // First point: just move there without drawing
         this.turtleState.penDown = true;
         this.turtleState.setPosition(x, y);
+        
+        // Draw dot at first point if requested
+        if (showDots) {
+          console.log(`Drawing dot at (${x}, ${y})`);
+          this.drawDot(x, y, dotColor);
+        }
       } else {
         // Subsequent points: draw line from current position to new point
         const currentPos = this.turtleState.getPosition();
@@ -266,6 +275,12 @@ export class Executor {
         
         // Move to the new position
         this.turtleState.setPosition(x, y);
+        
+        // Draw dot at current point if requested
+        if (showDots) {
+          console.log(`Drawing dot at (${x}, ${y})`);
+          this.drawDot(x, y, dotColor);
+        }
       }
     }
     
@@ -308,5 +323,20 @@ export class Executor {
 
   isRainbowOn() {
     return this.turtleState.rainbow;
+  }
+
+  drawDot(x, y, dotColor = null) {
+    // Use a bright contrasting color for dots to make them visible
+    const color = dotColor ? 
+      new THREE.Color(dotColor.r / 255, dotColor.g / 255, dotColor.b / 255) :
+      new THREE.Color(1, 1, 0); // Bright yellow if no color specified
+    
+    // Make dots smaller and more appropriate size
+    const dotSize = Math.max(2, this.turtleState.penSize * 0.8);
+    
+    console.log(`Drawing dot at (${x}, ${y}) with size ${dotSize} and color:`, color);
+    
+    // Draw a circle at the point
+    this.threeScene.drawCircle(x, y, dotSize, color);
   }
 }
