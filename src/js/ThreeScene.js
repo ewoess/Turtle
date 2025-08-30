@@ -91,13 +91,32 @@ export class ThreeScene {
     
     // Create a small triangle turtle
     const triGeom = new THREE.BufferGeometry();
-    const size = 6; // Small size for the turtle
+    const size = 3; // Smaller size for the turtle (half the previous size)
     const verts = new Float32Array([
       0, size, 0,           // Top point (front of turtle)
       -size*0.6, -size*0.8, 0,  // Bottom left
       size*0.6, -size*0.8, 0,   // Bottom right
     ]);
     triGeom.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+    
+    // Create black outline mesh (slightly larger) - add first so it renders behind
+    const outlineGeom = new THREE.BufferGeometry();
+    const outlineSize = size + 0.5; // Slightly larger for outline
+    const outlineVerts = new Float32Array([
+      0, outlineSize, 0,           // Top point
+      -outlineSize*0.6, -outlineSize*0.8, 0,  // Bottom left
+      outlineSize*0.6, -outlineSize*0.8, 0,   // Bottom right
+    ]);
+    outlineGeom.setAttribute('position', new THREE.BufferAttribute(outlineVerts, 3));
+    const outlineMat = new THREE.MeshBasicMaterial({ 
+      color: 0x000000,  // Black color for outline
+      transparent: false,
+      side: THREE.DoubleSide
+    });
+    this.turtleOutline = new THREE.Mesh(outlineGeom, outlineMat);
+    this.turtleGroup.add(this.turtleOutline);
+    
+    // Create the main turtle mesh (aqua color) - add second so it renders on top
     const triMat = new THREE.MeshBasicMaterial({ 
       color: 0x7fffd4,  // Aqua color (classic turtle color)
       transparent: false,
@@ -105,8 +124,9 @@ export class ThreeScene {
     });
     this.turtleMesh = new THREE.Mesh(triGeom, triMat);
     this.turtleGroup.add(this.turtleMesh);
+    
     this.scene.add(this.turtleGroup);
-    console.log('Turtle triangle created and added to scene');
+    console.log('Turtle triangle with outline created and added to scene');
   }
 
   setupDrawing() {
@@ -175,7 +195,7 @@ export class ThreeScene {
   }
 
   updateTurtleVisualization(x, y, heading) {
-    this.turtleGroup.position.set(x, y, 0);
+    this.turtleGroup.position.set(x, y, 10); // Higher Z position to be on top
     this.turtleGroup.rotation.z = THREE.MathUtils.degToRad(-heading);
     console.log('Turtle positioned at:', x, y, 'heading:', heading);
     console.log('Camera bounds:', this.camera.left, this.camera.right, this.camera.top, this.camera.bottom);
