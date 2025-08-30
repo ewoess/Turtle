@@ -4,54 +4,32 @@ export class Executor {
   constructor(turtleState, threeScene) {
     this.turtleState = turtleState;
     this.threeScene = threeScene;
+    
+    // Command matrix - maps command names to their execution functions
+    this.commandMatrix = {
+      'FD': (cmd) => this.move(cmd.n),
+      'BK': (cmd) => this.move(-cmd.n),
+      'RT': (cmd) => this.turn(cmd.n),
+      'LT': (cmd) => this.turn(-cmd.n),
+      'PU': (cmd) => { this.turtleState.penDown = false; },
+      'PD': (cmd) => { this.turtleState.penDown = true; },
+      'HOME': (cmd) => this.home(),
+      'CS': (cmd) => this.clearScreen(),
+      'SETPOS': (cmd) => this.setPosition(cmd.x, cmd.y),
+      'SETHEADING': (cmd) => this.setHeading(cmd.n),
+      'PENCOLOR': (cmd) => this.setPenColor(cmd.r, cmd.g, cmd.b),
+      'PENSIZE': (cmd) => this.setPenSize(cmd.n),
+      'HUESTEP': (cmd) => this.setHueStep(cmd.n),
+      'RAINBOW': (cmd) => this.setRainbow(cmd.on)
+    };
   }
 
   execute(cmd) {
-    switch (cmd.op) {
-      case 'FD': 
-        this.move(cmd.n); 
-        break;
-      case 'BK': 
-        this.move(-cmd.n); 
-        break;
-      case 'RT': 
-        this.turn(cmd.n); 
-        break;
-      case 'LT': 
-        this.turn(-cmd.n); 
-        break;
-      case 'PU': 
-        this.turtleState.penDown = false; 
-        break;
-      case 'PD': 
-        this.turtleState.penDown = true; 
-        break;
-      case 'HOME':
-        this.home(); 
-        break;
-      case 'CS': 
-        this.clearScreen(); 
-        break;
-      case 'SETPOS':
-        this.setPosition(cmd.x, cmd.y); 
-        break;
-      case 'SETHEADING':
-        this.setHeading(cmd.n); 
-        break;
-      case 'PENCOLOR':
-        this.setPenColor(cmd.r, cmd.g, cmd.b); 
-        break;
-      case 'PENSIZE':
-        this.setPenSize(cmd.n); 
-        break;
-      case 'HUESTEP':
-        this.setHueStep(cmd.n); 
-        break;
-      case 'RAINBOW':
-        this.setRainbow(cmd.on); 
-        break;
-      default: 
-        throw new Error('Unhandled op ' + cmd.op);
+    const commandHandler = this.commandMatrix[cmd.op];
+    if (commandHandler) {
+      commandHandler(cmd);
+    } else {
+      throw new Error('Unhandled op ' + cmd.op);
     }
   }
 
