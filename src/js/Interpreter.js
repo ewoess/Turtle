@@ -98,8 +98,42 @@ export class Interpreter {
       .trim();
     
     const tokens = replaced.length ? replaced.split(' ') : [];
-    console.log('Tokenized:', tokens);
-    return tokens;
+    
+    // Special handling for PLOT expressions - combine mathematical expressions
+    const processedTokens = [];
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+      
+      // If this is a PLOT command, the next token should be treated as an expression
+      if (token.toUpperCase() === 'PLOT' && i + 1 < tokens.length) {
+        // Collect all tokens until we hit a PLOT option or end of tokens
+        const expressionTokens = [];
+        let j = i + 1;
+        
+        while (j < tokens.length) {
+          const nextToken = tokens[j];
+          // Stop if we hit a PLOT option keyword
+          if (['FROM', 'TO', 'STEPS', 'SMOOTH', 'AT', 'DOTS', 'COLOR'].includes(nextToken.toUpperCase())) {
+            break;
+          }
+          expressionTokens.push(nextToken);
+          j++;
+        }
+        
+        // Combine the expression tokens
+        const expression = expressionTokens.join(' ');
+        processedTokens.push(token); // Add PLOT
+        processedTokens.push(expression); // Add combined expression
+        
+        // Skip the tokens we've already processed
+        i = j - 1;
+      } else {
+        processedTokens.push(token);
+      }
+    }
+    
+    console.log('Tokenized:', processedTokens);
+    return processedTokens;
   }
 
     parse(tokens) {
