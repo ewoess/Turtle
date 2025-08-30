@@ -4,11 +4,6 @@ export class Executor {
   constructor(turtleState, threeScene) {
     this.turtleState = turtleState;
     this.threeScene = threeScene;
-    this.uiController = null;
-  }
-
-  setUIController(uiController) {
-    this.uiController = uiController;
   }
 
   execute(cmd) {
@@ -88,9 +83,6 @@ export class Executor {
 
   setPenColor(r, g, b) {
     this.turtleState.setPenColor(r, g, b);
-    if (this.uiController) {
-      this.uiController.updateColorPicker();
-    }
   }
 
   setPenSize(size) {
@@ -104,9 +96,6 @@ export class Executor {
 
   setRainbow(on) {
     this.turtleState.setRainbow(on);
-    if (this.uiController) {
-      this.uiController.updateColorPicker();
-    }
   }
 
   home() {

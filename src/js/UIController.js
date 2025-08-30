@@ -5,7 +5,6 @@ export class UIController {
     this.threeScene = threeScene;
     this.programIterator = null;
     this.playing = false;
-    this.rainbowUpdateInterval = null;
     
     this.setupElements();
     this.setupEventListeners();
@@ -20,15 +19,13 @@ export class UIController {
     this.toggleCommandsBtn = document.getElementById('toggleCommandsBtn');
     this.speed = document.getElementById('speed');
     this.pensize = document.getElementById('pensize');
-    this.pencolor = document.getElementById('pencolor');
-    this.rainbowIndicator = document.getElementById('rainbowIndicator');
-    this.zoomSlider = document.getElementById('zoomSlider');
     this.toggleGridBtn = document.getElementById('toggleGridBtn');
     this.statusText = document.getElementById('statusText');
     this.light = document.getElementById('light');
     this.posLbl = document.getElementById('posLbl');
     this.headLbl = document.getElementById('headLbl');
     this.commandsDetails = document.getElementById('commandsDetails');
+    this.splitter = document.getElementById('splitter');
   }
 
   setupEventListeners() {
@@ -51,19 +48,8 @@ export class UIController {
       this.executor.setPenSize(size);
     });
     
-    this.pencolor.addEventListener('input', () => {
-      const color = this.pencolor.value;
-      // Convert hex to RGB
-      const r = parseInt(color.substr(1, 2), 16);
-      const g = parseInt(color.substr(3, 2), 16);
-      const b = parseInt(color.substr(5, 2), 16);
-      this.executor.setPenColor(r, g, b);
-    });
-
-    this.zoomSlider.addEventListener('input', () => {
-      const zoom = parseFloat(this.zoomSlider.value);
-      this.threeScene.setZoom(zoom);
-    });
+    // Setup splitter functionality
+    this.setupSplitter();
   }
 
   setupExamples() {
@@ -97,32 +83,7 @@ export class UIController {
     this.headLbl.textContent = `${heading.toFixed(0)}°`;
   }
 
-  updateColorPicker() {
-    const currentColor = this.executor.getCurrentColorHex();
-    this.pencolor.value = currentColor;
-    
-    const isRainbow = this.executor.isRainbowOn();
-    this.rainbowIndicator.style.display = isRainbow ? 'inline' : 'none';
-    
-    // If rainbow is on, update the color picker periodically to show the cycling
-    if (isRainbow) {
-      if (!this.rainbowUpdateInterval) {
-        this.rainbowUpdateInterval = setInterval(() => {
-          if (this.executor.isRainbowOn()) {
-            this.pencolor.value = this.executor.getCurrentColorHex();
-          } else {
-            clearInterval(this.rainbowUpdateInterval);
-            this.rainbowUpdateInterval = null;
-          }
-        }, 100); // Update every 100ms to show the color cycling
-      }
-    } else {
-      if (this.rainbowUpdateInterval) {
-        clearInterval(this.rainbowUpdateInterval);
-        this.rainbowUpdateInterval = null;
-      }
-    }
-  }
+
 
   toggleCommands() {
     this.commandsDetails.open = !this.commandsDetails.open;
@@ -134,8 +95,48 @@ export class UIController {
   toggleGrid() {
     const isVisible = this.threeScene.toggleGrid();
     // Update button text to indicate state
-    this.toggleGridBtn.textContent = isVisible ? '🔲' : '⬜';
+    this.toggleGridBtn.textContent = isVisible ? '⊞' : '⊟';
     this.toggleGridBtn.title = isVisible ? 'Hide Grid' : 'Show Grid';
+  }
+
+  setupSplitter() {
+    let isResizing = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    this.splitter.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      startY = e.clientY;
+      const editorSection = document.querySelector('.editor-section');
+      startHeight = editorSection.offsetHeight;
+      document.body.style.cursor = 'ns-resize';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      
+      const deltaY = e.clientY - startY;
+      const editorSection = document.querySelector('.editor-section');
+      const leftPane = document.querySelector('.left');
+      const toolbarHeight = document.querySelector('.toolbar').offsetHeight;
+      const splitterHeight = this.splitter.offsetHeight;
+      
+      // Calculate available space
+      const availableHeight = leftPane.offsetHeight - toolbarHeight - splitterHeight;
+      
+      // Calculate new height with constraints
+      const newHeight = Math.max(150, Math.min(availableHeight - 150, startHeight + deltaY));
+      
+      editorSection.style.height = newHeight + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = '';
+      }
+    });
   }
 
   compile() {
@@ -197,13 +198,6 @@ export class UIController {
     this.runBtn.textContent = 'Run';
     this.setStatus('Reset.');
     this.updatePositionDisplay();
-    this.updateColorPicker();
-    
-    // Clear rainbow update interval
-    if (this.rainbowUpdateInterval) {
-      clearInterval(this.rainbowUpdateInterval);
-      this.rainbowUpdateInterval = null;
-    }
   }
 
   stepsThisFrame() {
@@ -249,6 +243,5 @@ export class UIController {
   initialize() {
     this.compile();
     this.updatePositionDisplay();
-    this.updateColorPicker();
   }
 }

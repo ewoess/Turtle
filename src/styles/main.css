@@ -42,6 +42,21 @@ header h1 {
   flex-direction: column; 
   border-right: 1px solid #1c2430; 
   min-width: 320px;
+  overflow: hidden; /* Prevent overflow from affecting the grid */
+}
+
+.left .editor-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 60%; /* Set initial height */
+  flex-shrink: 0; /* Prevent flex shrinking */
+  overflow: hidden; /* Prevent content from overflowing */
+}
+
+.left .help {
+  flex: 1; /* Take remaining space */
+  min-height: 0; /* Allow shrinking */
 }
 
 .panel {
@@ -85,6 +100,8 @@ textarea {
   color: var(--ink); 
   font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; 
   padding: 10px;
+  min-height: 0; /* Allow shrinking */
+  overflow-y: auto; /* Make textarea scrollable if content overflows */
 }
 
 .status {
@@ -96,6 +113,7 @@ textarea {
   padding: 6px 10px; 
   border-top: 1px solid #1c2430; 
   background: #0f141a;
+  flex-shrink: 0; /* Prevent status from shrinking */
 }
 
 .status .light {
@@ -141,11 +159,52 @@ textarea {
   font-size: 12px;
 }
 
+.splitter {
+  height: 6px;
+  background: #1c2430;
+  cursor: ns-resize;
+  position: relative;
+  flex-shrink: 0; /* Prevent shrinking */
+  user-select: none; /* Prevent text selection */
+}
+
+.splitter:hover {
+  background: #3a4b62;
+}
+
+.splitter::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 3px;
+  background: #666;
+  border-radius: 2px;
+}
+
 .help {
   padding: 10px; 
   color: #bcd; 
-  border-top: 1px solid #1c2430; 
   font-size: 12px;
+  overflow-y: auto;
+  flex: 1;
+  border-top: 1px solid #1c2430;
+}
+
+.help details {
+  margin: 6px 0;
+}
+
+.help details:first-child {
+  /* Commands section */
+  margin-bottom: 10px;
+}
+
+.help details:last-child {
+  /* Examples section */
+  margin-bottom: 0;
 }
 
 details {

@@ -18,13 +18,21 @@
         <button id="stepBtn">Step</button>
         <button id="resetBtn">Reset</button>
         <button id="toggleCommandsBtn" title="Toggle Commands List (Ctrl+Shift+C)">📋</button>
+        <button id="toggleGridBtn" title="Toggle Grid">⊞</button>
         <label>Speed <input id="speed" type="range" min="0" max="300" value="150"/></label>
         <label>Pen size <input id="pensize" type="number" min="1" max="12" value="6" style="width:56px"></label>
-        <label>Pen color <input id="pencolor" type="color" value="#33ffaa"><span id="rainbowIndicator" style="display:none;margin-left:8px;color:#ff6b6b">🌈</span></label>
-        <label>Zoom <input id="zoomSlider" type="range" min="0.1" max="5" step="0.1" value="1" style="width:80px"></label>
-        <button id="toggleGridBtn" title="Toggle Grid">🔲</button>
       </div>
-      <textarea id="editor" spellcheck="false"></textarea>
+      <div class="editor-section">
+        <textarea id="editor" spellcheck="false"></textarea>
+
+        <div class="status">
+          <div class="light" id="light"></div>
+          <div id="statusText">Ready.</div>
+        </div>
+      </div>
+      
+      <div class="splitter" id="splitter"></div>
+      
       <div class="help">
         <details id="commandsDetails" open>
           <summary>Commands</summary>
@@ -47,10 +55,6 @@
           <summary>Examples</summary>
           <pre id="examples" style="white-space:pre-wrap;color:#cfe8ff"></pre>
         </details>
-      </div>
-      <div class="status">
-        <div class="light" id="light"></div>
-        <div id="statusText">Ready.</div>
       </div>
     </section>
     <section class="canvas-wrap">

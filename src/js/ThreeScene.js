@@ -2,14 +2,13 @@ import * as THREE from 'three';
 
 export class ThreeScene {
   constructor(container) {
+    console.log('ThreeScene constructor called');
+    console.log('THREE object:', THREE);
+    
     this.container = container;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x000000);
-    
-    // Zoom state
-    this.zoomLevel = 1.0;
-    this.minZoom = 0.1;
-    this.maxZoom = 5.0;
+    console.log('Scene created with black background');
     
     this.setupCamera();
     this.setupRenderer();
@@ -18,7 +17,7 @@ export class ThreeScene {
     this.setupDrawing();
     
     this.setupResizeHandler();
-    this.setupZoomControls();
+    console.log('ThreeScene setup complete');
   }
 
   setupCamera() {
@@ -89,19 +88,25 @@ export class ThreeScene {
 
   setupTurtle() {
     this.turtleGroup = new THREE.Group();
+    
+    // Create a small triangle turtle
     const triGeom = new THREE.BufferGeometry();
-    // Smaller turtle size for the fixed viewport
-    const size = 4;
+    const size = 6; // Small size for the turtle
     const verts = new Float32Array([
-      0, size, 0,
-      -size*0.6, -size*0.8, 0,
-      size*0.6, -size*0.8, 0,
+      0, size, 0,           // Top point (front of turtle)
+      -size*0.6, -size*0.8, 0,  // Bottom left
+      size*0.6, -size*0.8, 0,   // Bottom right
     ]);
     triGeom.setAttribute('position', new THREE.BufferAttribute(verts, 3));
-    const triMat = new THREE.MeshBasicMaterial({ color: 0x7fffd4 });
+    const triMat = new THREE.MeshBasicMaterial({ 
+      color: 0x7fffd4,  // Aqua color (classic turtle color)
+      transparent: false,
+      side: THREE.DoubleSide
+    });
     this.turtleMesh = new THREE.Mesh(triGeom, triMat);
     this.turtleGroup.add(this.turtleMesh);
     this.scene.add(this.turtleGroup);
+    console.log('Turtle triangle created and added to scene');
   }
 
   setupDrawing() {
@@ -132,61 +137,15 @@ export class ThreeScene {
     window.addEventListener('resize', () => this.onResize());
   }
 
-  setupZoomControls() {
-    // Mouse wheel zoom
-    this.container.addEventListener('wheel', (event) => {
-      event.preventDefault();
-      const zoomSpeed = 0.1;
-      const zoomDelta = event.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-      this.zoom(zoomDelta);
-    });
 
-    // Touch zoom (pinch to zoom)
-    let initialDistance = 0;
-    this.container.addEventListener('touchstart', (event) => {
-      if (event.touches.length === 2) {
-        initialDistance = Math.hypot(
-          event.touches[0].clientX - event.touches[1].clientX,
-          event.touches[0].clientY - event.touches[1].clientY
-        );
-      }
-    });
-
-    this.container.addEventListener('touchmove', (event) => {
-      if (event.touches.length === 2) {
-        event.preventDefault();
-        const currentDistance = Math.hypot(
-          event.touches[0].clientX - event.touches[1].clientX,
-          event.touches[0].clientY - event.touches[1].clientY
-        );
-        const zoomDelta = (currentDistance - initialDistance) * 0.01;
-        this.zoom(zoomDelta);
-        initialDistance = currentDistance;
-      }
-    });
-  }
-
-  zoom(delta) {
-    const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel + delta));
-    if (newZoom !== this.zoomLevel) {
-      this.zoomLevel = newZoom;
-      this.updateCamera();
-      this.updateZoomSlider();
-    }
-  }
-
-  setZoom(zoom) {
-    this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, zoom));
-    this.updateCamera();
-  }
 
   updateCamera() {
     const width = this.getWidth();
     const height = this.getHeight();
     const aspect = width / height;
     
-    // Apply zoom to viewport
-    const viewHeight = 200 / this.zoomLevel;
+    // Fixed viewport without zoom
+    const viewHeight = 200;
     const viewWidth = viewHeight * aspect;
     
     this.camera.left = -viewWidth/2;
@@ -196,12 +155,7 @@ export class ThreeScene {
     this.camera.updateProjectionMatrix();
   }
 
-  updateZoomSlider() {
-    const slider = document.getElementById('zoomSlider');
-    if (slider) {
-      slider.value = this.zoomLevel;
-    }
-  }
+
 
   getWidth() {
     return this.container.clientWidth || (this.container.parentElement?.clientWidth ?? 800);
@@ -216,13 +170,15 @@ export class ThreeScene {
     const h = this.getHeight();
     this.renderer.setSize(w, h);
     
-    // Update camera with current zoom level
+    // Update camera
     this.updateCamera();
   }
 
   updateTurtleVisualization(x, y, heading) {
-    this.turtleGroup.position.set(x, y, 1);
+    this.turtleGroup.position.set(x, y, 0);
     this.turtleGroup.rotation.z = THREE.MathUtils.degToRad(-heading);
+    console.log('Turtle positioned at:', x, y, 'heading:', heading);
+    console.log('Camera bounds:', this.camera.left, this.camera.right, this.camera.top, this.camera.bottom);
   }
 
   ensureCapacity(nextSegs) {
@@ -393,5 +349,9 @@ export class ThreeScene {
 
   render() {
     this.renderer.render(this.scene, this.camera);
+    // Debug: check scene contents
+    console.log('Scene children count:', this.scene.children.length);
+    console.log('Turtle group visible:', this.turtleGroup ? this.turtleGroup.visible : 'no turtle group');
+    console.log('Grid visible:', this.grid ? this.grid.visible : 'no grid');
   }
 }
