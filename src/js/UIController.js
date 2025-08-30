@@ -17,7 +17,6 @@ export class UIController {
     this.stepBtn = document.getElementById('stepBtn');
     this.resetBtn = document.getElementById('resetBtn');
     this.speed = document.getElementById('speed');
-    this.pensize = document.getElementById('pensize');
     this.toggleGridBtn = document.getElementById('toggleGridBtn');
     this.statusText = document.getElementById('statusText');
     this.light = document.getElementById('light');
@@ -32,11 +31,6 @@ export class UIController {
     this.stepBtn.addEventListener('click', () => this.handleStep());
     this.resetBtn.addEventListener('click', () => this.handleReset());
     this.toggleGridBtn.addEventListener('click', () => this.toggleGrid());
-    
-    this.pensize.addEventListener('change', () => {
-      const size = Math.max(1, Math.min(12, parseInt(this.pensize.value || '2', 10)));
-      this.executor.setPenSize(size);
-    });
     
     // Setup splitter functionality
     this.setupSplitter();
