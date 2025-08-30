@@ -38,21 +38,21 @@ export class UIController {
 
   setupExamples() {
     const samples = {
-      Square: `REPEAT 4 [ FD 120 RT 90 ]`,
-      Star: `REPEAT 5 [ FD 180 RT 144 ]`,
-      Spiral: `CS HOME PD REPEAT 60 [ FD 5 RT 10 FD 5 ]`,
-      RainbowSpiral: `CS HOME PD\nRAINBOW ON\nHUESTEP 4\nPENSIZE 2\nREPEAT 150 [ FD 6 RT 11 ]`,
-      Nested: `CS HOME PD\nRAINBOW ON\nREPEAT 12 [\n  REPEAT 8 [ FD 80 RT 45 ]\n  RT 30\n]`,
-      Snowflake: `CS HOME PD\nPENCOLOR 160 220 255\nREPEAT 6 [\n  REPEAT 3 [ FD 100 RT 60 ]\n  RT 60\n]`,
-      PerfCircle: `CS HOME PD\nRAINBOW ON\nHUESTEP 3\nREPEAT 2000 [ FD 3 RT 5 ]`,
-      ManyCircles: `CS HOME PD\nRAINBOW ON\nPENSIZE 2\nHUESTEP 5\nPU HOME\nREPEAT 11 [ RT 30 HOME PU FD 160 LT 90 FD 65 LT 90 PD REPEAT 51 [ FD 8 RT 7 ] PU ]\nHOME PD`
+      Square: `REPEAT 4 [ FD 40 RT 90 ]`,
+      Star: `REPEAT 5 [ FD 60 RT 144 ]`,
+      Spiral: `CS HOME PD REPEAT 60 [ FD 3 RT 10 FD 3 ]`,
+      RainbowSpiral: `CS HOME PD\nRAINBOW ON\nHUESTEP 4\nPENSIZE 2\nREPEAT 80 [ FD 4 RT 11 ]`,
+      Nested: `CS HOME PD\nRAINBOW ON\nREPEAT 12 [\n  REPEAT 8 [ FD 30 RT 45 ]\n  RT 30\n]`,
+      Snowflake: `CS HOME PD\nPENCOLOR 160 220 255\nREPEAT 6 [\n  REPEAT 3 [ FD 40 RT 60 ]\n  RT 60\n]`,
+      PerfCircle: `CS HOME PD\nRAINBOW ON\nHUESTEP 3\nREPEAT 1200 [ FD 2 RT 5 ]`,
+      ManyCircles: `CS HOME PD\nRAINBOW ON\nPENSIZE 2\nHUESTEP 5\nPU HOME\nREPEAT 11 [ RT 30 HOME PU FD 60 LT 90 FD 25 LT 90 PD REPEAT 51 [ FD 4 RT 7 ] PU ]\nHOME PD`
     };
     
     const examples = document.getElementById('examples');
     examples.textContent = Object.entries(samples).map(([k, v]) => `• ${k}\n${v}`).join('\n\n');
     
     // Set default program
-    this.editor.value = `; Rainbow demo\nCS HOME PD\nRAINBOW ON\nHUESTEP 4\nPENSIZE 6\nREPEAT 120 [ FD 8 RT 7 ]`;
+    this.editor.value = `; Rainbow demo\nCS HOME PD\nRAINBOW ON\nHUESTEP 4\nPENSIZE 6\nREPEAT 80 [ FD 6 RT 7 ]`;
   }
 
   setStatus(message, isError = false) {
