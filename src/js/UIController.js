@@ -16,7 +16,6 @@ export class UIController {
     this.runBtn = document.getElementById('runBtn');
     this.stepBtn = document.getElementById('stepBtn');
     this.resetBtn = document.getElementById('resetBtn');
-    this.toggleCommandsBtn = document.getElementById('toggleCommandsBtn');
     this.speed = document.getElementById('speed');
     this.pensize = document.getElementById('pensize');
     this.toggleGridBtn = document.getElementById('toggleGridBtn');
@@ -32,16 +31,7 @@ export class UIController {
     this.runBtn.addEventListener('click', () => this.handleRun());
     this.stepBtn.addEventListener('click', () => this.handleStep());
     this.resetBtn.addEventListener('click', () => this.handleReset());
-    this.toggleCommandsBtn.addEventListener('click', () => this.toggleCommands());
     this.toggleGridBtn.addEventListener('click', () => this.toggleGrid());
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-        e.preventDefault();
-        this.toggleCommands();
-      }
-    });
     
     this.pensize.addEventListener('change', () => {
       const size = Math.max(1, Math.min(12, parseInt(this.pensize.value || '2', 10)));
@@ -85,12 +75,7 @@ export class UIController {
 
 
 
-  toggleCommands() {
-    this.commandsDetails.open = !this.commandsDetails.open;
-    // Update button text to indicate state
-    this.toggleCommandsBtn.textContent = this.commandsDetails.open ? '📋' : '📖';
-    this.toggleCommandsBtn.title = this.commandsDetails.open ? 'Hide Commands List (Ctrl+Shift+C)' : 'Show Commands List (Ctrl+Shift+C)';
-  }
+
 
   toggleGrid() {
     const isVisible = this.threeScene.toggleGrid();
