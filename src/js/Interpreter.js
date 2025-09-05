@@ -1,10 +1,11 @@
 export class Interpreter {
-  constructor() {
+  constructor(colors = null) {
     this.keywords = new Set([
       'FD', 'BK', 'RT', 'LT', 'PU', 'PD', 'HOME', 'CS', 
       'SETPOS', 'SETHEADING', 'PENCOLOR', 'PENSIZE', 
       'RAINBOW', 'HUESTEP', 'REPEAT'
     ]);
+    this.colors = colors; // Store color enum reference
   }
 
   tokenize(src) {
@@ -59,11 +60,19 @@ export class Interpreter {
             break;
           }
           case 'PENCOLOR': {
-            const r = Number(tokens[i++]);
-            const g = Number(tokens[i++]);
-            const b = Number(tokens[i++]);
-            if ([r, g, b].some(n => Number.isNaN(n))) throw new Error('PENCOLOR r g b (0-255)');
-            block.push({ op: 'PENCOLOR', r, g, b });
+            const nextToken = tokens[i++];
+            // Check if next token is a color name
+            if (this.colors && this.colors[nextToken]) {
+              const color = this.colors[nextToken];
+              block.push({ op: 'PENCOLOR', r: color.r, g: color.g, b: color.b });
+            } else {
+              // Try to parse as RGB values
+              const r = Number(nextToken);
+              const g = Number(tokens[i++]);
+              const b = Number(tokens[i++]);
+              if ([r, g, b].some(n => Number.isNaN(n))) throw new Error('PENCOLOR r g b (0-255) or PENCOLOR colorName');
+              block.push({ op: 'PENCOLOR', r, g, b });
+            }
             break;
           }
           case 'HUESTEP': {

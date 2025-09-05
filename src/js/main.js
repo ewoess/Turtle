@@ -18,9 +18,8 @@ class TurtleApp {
     
     this.turtleState = new TurtleState();
     this.threeScene = new ThreeScene(container);
-    this.interpreter = new Interpreter();
     this.executor = new Executor(this.turtleState, this.threeScene);
-    this.uiController = new UIController(this.executor, this.interpreter, this.threeScene);
+    this.uiController = new UIController(this.executor, null, this.threeScene);
 
     // Initialize turtle position
     this.executor.updateVisualization();
